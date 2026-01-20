@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Slider } from '@/components/ui/slider';
 import { useState } from 'react';
+import { formatPrice } from '@/lib/format';
 
 interface FilterBarProps {
   searchQuery: string;
@@ -40,7 +41,7 @@ const FilterBar = ({
 }: FilterBarProps) => {
   const [showFilters, setShowFilters] = useState(false);
 
-  const formatPrice = (price: number) => `₱${price.toLocaleString()}`;
+  
 
   return (
     <div className="bg-secondary py-6 sticky top-0 z-40">
