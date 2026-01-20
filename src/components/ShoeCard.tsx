@@ -1,7 +1,9 @@
 import { Heart } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Shoe, isNewArrival } from '@/types/shoe';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { formatPrice } from '@/lib/format';
 
 interface ShoeCardProps {
   shoe: Shoe;
@@ -10,12 +12,20 @@ interface ShoeCardProps {
 }
 
 const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false }: ShoeCardProps) => {
+  const navigate = useNavigate();
   const isNew = isNewArrival(shoe);
   const isSoldOut = shoe.status === 'sold_out';
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking the wishlist button
+    if ((e.target as HTMLElement).closest('button')) return;
+    navigate(`/product/${shoe.id}`);
+  };
+
   return (
     <div 
-      className={`group relative bg-card border-2 border-foreground overflow-hidden transition-all hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 ${
+      onClick={handleCardClick}
+      className={`group relative bg-card border-2 border-foreground overflow-hidden transition-all cursor-pointer hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 ${
         isSoldOut ? 'opacity-60' : ''
       }`}
     >
@@ -89,8 +99,11 @@ const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false }: ShoeCardProps
         {/* Price */}
         <div className="flex items-center justify-between">
           <p className="text-2xl font-black">
-            ₱{shoe.price.toLocaleString()}
+            {formatPrice(shoe.price)}
           </p>
+          <span className="text-xs text-muted-foreground font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+            View Details →
+          </span>
         </div>
       </div>
     </div>
