@@ -1,4 +1,3 @@
-import { Ruler } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -6,7 +5,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -15,91 +13,74 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-
-const sizeData = [
-  { eu: 37, usM: 5, uk: 4.5 },
-  { eu: 38, usM: 5.5, uk: 5 },
-  { eu: 39, usM: 6.5, uk: 6 },
-  { eu: 40, usM: 7, uk: 6.5 },
-  { eu: 41, usM: 8, uk: 7.5 },
-  { eu: 42, usM: 8.5, uk: 8 },
-  { eu: 43, usM: 9.5, uk: 9 },
-  { eu: 44, usM: 10, uk: 9.5 },
-  { eu: 45, usM: 11, uk: 10.5 },
-  { eu: 46, usM: 12, uk: 11 },
-];
+import { Lightbulb, Ruler } from 'lucide-react';
 
 interface SizeGuideModalProps {
   trigger?: React.ReactNode;
 }
+
+const sizeData = [
+  { us: 6, uk: 5.5, eu: 38.5, cm: 24 },
+  { us: 7, uk: 6, eu: 40, cm: 25 },
+  { us: 8, uk: 7, eu: 41, cm: 26 },
+  { us: 9, uk: 8, eu: 42.5, cm: 27 },
+  { us: 10, uk: 9, eu: 44, cm: 28 },
+  { us: 11, uk: 10, eu: 45, cm: 29 },
+  { us: 12, uk: 11, eu: 46, cm: 30 },
+];
 
 const SizeGuideModal = ({ trigger }: SizeGuideModalProps) => {
   return (
     <Dialog>
       <DialogTrigger asChild>
         {trigger || (
-          <button className="text-sm text-accent hover:underline font-medium inline-flex items-center gap-1">
-            <Ruler className="h-4 w-4" />
+          <button className="text-sm text-accent hover:underline font-medium flex items-center gap-1">
+            <Ruler className="w-4 h-4" />
             Size Guide
           </button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-md border-2 border-foreground">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-black">Size Guide</DialogTitle>
-          <p className="text-muted-foreground text-sm">
-            Find your perfect fit with our size conversion chart.
-          </p>
+      <DialogContent className="max-w-lg max-h-[70vh] overflow-hidden flex flex-col border-2 border-foreground p-0 bg-[#1a1a1a] text-white">
+        <DialogHeader className="p-6 pb-4 border-b border-white/10">
+          <DialogTitle className="text-2xl font-black tracking-tight text-white">
+            SIZE GUIDE
+          </DialogTitle>
         </DialogHeader>
 
-        {/* Size Table */}
-        <div className="border-2 border-foreground overflow-hidden">
+        <div className="flex-1 overflow-auto px-6 py-4 scrollbar-thin">
           <Table>
             <TableHeader>
-              <TableRow className="bg-foreground hover:bg-foreground">
-                <TableHead className="text-background font-bold text-center">EU</TableHead>
-                <TableHead className="text-background font-bold text-center">US (Men)</TableHead>
-                <TableHead className="text-background font-bold text-center">UK</TableHead>
+              <TableRow className="border-b border-white/20 hover:bg-transparent">
+                <TableHead className="text-gray-400 font-bold text-sm py-4">US</TableHead>
+                <TableHead className="text-gray-400 font-bold text-sm py-4">UK</TableHead>
+                <TableHead className="text-gray-400 font-bold text-sm py-4">EU</TableHead>
+                <TableHead className="text-gray-400 font-bold text-sm py-4">CM</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {sizeData.map((row) => (
-                <TableRow key={row.eu} className="hover:bg-muted/50">
-                  <TableCell className="text-center font-bold">{row.eu}</TableCell>
-                  <TableCell className="text-center">{row.usM}</TableCell>
-                  <TableCell className="text-center">{row.uk}</TableCell>
+              {sizeData.map((size, index) => (
+                <TableRow
+                  key={index}
+                  className="border-b border-white/10 hover:bg-white/5"
+                >
+                  <TableCell className="text-white font-semibold py-4">{size.us}</TableCell>
+                  <TableCell className="text-gray-300 py-4">{size.uk}</TableCell>
+                  <TableCell className="text-gray-300 py-4">{size.eu}</TableCell>
+                  <TableCell className="text-gray-300 py-4">{size.cm}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </div>
 
-        {/* How to Measure */}
-        <div className="mt-4 p-4 bg-secondary rounded-lg">
-          <h3 className="font-bold text-sm tracking-wide mb-3">HOW TO MEASURE</h3>
-          <ol className="text-sm text-muted-foreground space-y-2">
-            <li className="flex gap-2">
-              <span className="font-bold text-foreground">1.</span>
-              Place a piece of paper against a wall and stand on it with your heel against the wall.
-            </li>
-            <li className="flex gap-2">
-              <span className="font-bold text-foreground">2.</span>
-              Mark the longest part of your foot on the paper.
-            </li>
-            <li className="flex gap-2">
-              <span className="font-bold text-foreground">3.</span>
-              Measure the distance from the wall to the mark in centimeters.
-            </li>
-            <li className="flex gap-2">
-              <span className="font-bold text-foreground">4.</span>
-              Compare with the size chart above to find your perfect size.
-            </li>
-          </ol>
-        </div>
-
-        {/* Tip */}
-        <div className="text-xs text-muted-foreground text-center mt-2">
-          💡 <strong>Tip:</strong> If you're between sizes, we recommend going up a half size for a more comfortable fit.
+        {/* Tip Section */}
+        <div className="p-6 pt-4 border-t border-white/10">
+          <div className="flex items-start gap-3 text-sm">
+            <Lightbulb className="h-5 w-5 text-yellow-400 flex-shrink-0 mt-0.5" />
+            <p className="text-gray-400">
+              <span className="text-yellow-400 font-medium">Tip:</span> If you're between sizes, we recommend sizing up for a more comfortable fit.
+            </p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

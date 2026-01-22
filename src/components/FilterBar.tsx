@@ -62,7 +62,7 @@ const FilterBar = ({
   };
 
   return (
-    <div className="bg-secondary py-6 sticky top-0 z-40">
+    <div className="bg-secondary py-6 top-0 z-40">
       <div className="container">
         {/* Search Bar and Sort */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 mb-4">

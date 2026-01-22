@@ -5,52 +5,53 @@ import HeroSection from '@/components/HeroSection';
 import FilterBar, { SortOption } from '@/components/FilterBar';
 import ShoeCatalog from '@/components/ShoeCatalog';
 import Footer from '@/components/Footer';
+import BackToTopButton from '@/components/BackToTopButton';
 import { mockShoes, getUniqueBrands, getUniqueSizes, getPriceRange, Shoe } from '@/types/shoe';
 import { toast } from 'sonner';
 
 const Index = () => {
   const catalogRef = useRef<HTMLDivElement>(null);
-  
+
   // Filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedSizes, setSelectedSizes] = useState<number[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
-  
+
   // Price range from data
   const { min: minPrice, max: maxPrice } = getPriceRange(mockShoes);
   const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
-  
+
   // Wishlist state (will be persisted to DB in Phase 3)
   const [wishlistIds, setWishlistIds] = useState<string[]>([]);
-  
+
   // Computed values
   const availableBrands = useMemo(() => getUniqueBrands(mockShoes), []);
   const availableSizes = useMemo(() => getUniqueSizes(mockShoes), []);
-  
+
   // Filter and sort logic
   const filteredShoes = useMemo(() => {
     let result = mockShoes.filter((shoe) => {
       // Search filter
-      const matchesSearch = 
+      const matchesSearch =
         searchQuery === '' ||
         shoe.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         shoe.brand.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       // Brand filter
-      const matchesBrand = 
+      const matchesBrand =
         selectedBrands.length === 0 ||
         selectedBrands.includes(shoe.brand);
-      
+
       // Size filter
-      const matchesSize = 
+      const matchesSize =
         selectedSizes.length === 0 ||
         shoe.sizes.some(size => selectedSizes.includes(size));
-      
+
       // Price filter
-      const matchesPrice = 
+      const matchesPrice =
         shoe.price >= priceRange[0] && shoe.price <= priceRange[1];
-      
+
       return matchesSearch && matchesBrand && matchesSize && matchesPrice;
     });
 
@@ -72,7 +73,7 @@ const Index = () => {
 
     return result;
   }, [searchQuery, selectedBrands, selectedSizes, priceRange, sortOption]);
-  
+
   // Handlers
   const handleBrandToggle = (brand: string) => {
     setSelectedBrands(prev =>
@@ -81,7 +82,7 @@ const Index = () => {
         : [...prev, brand]
     );
   };
-  
+
   const handleSizeToggle = (size: number) => {
     setSelectedSizes(prev =>
       prev.includes(size)
@@ -89,21 +90,21 @@ const Index = () => {
         : [...prev, size]
     );
   };
-  
+
   const handleClearFilters = () => {
     setSearchQuery('');
     setSelectedBrands([]);
     setSelectedSizes([]);
     setPriceRange([minPrice, maxPrice]);
   };
-  
-  const hasActiveFilters = 
+
+  const hasActiveFilters =
     searchQuery !== '' ||
     selectedBrands.length > 0 ||
     selectedSizes.length > 0 ||
     priceRange[0] !== minPrice ||
     priceRange[1] !== maxPrice;
-  
+
   const handleWishlistClick = (shoe: Shoe) => {
     // In Phase 3, this will require authentication
     if (wishlistIds.includes(shoe.id)) {
@@ -114,13 +115,13 @@ const Index = () => {
       toast.success(`Added ${shoe.name} to wishlist`);
     }
   };
-  
+
   const scrollToCatalog = () => {
     catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-background"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -128,9 +129,9 @@ const Index = () => {
     >
       <Header />
       <HeroSection onBrowseClick={scrollToCatalog} />
-      
-      <motion.div 
-        ref={catalogRef} 
+
+      <motion.div
+        ref={catalogRef}
         id="catalog"
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
@@ -155,15 +156,16 @@ const Index = () => {
           sortOption={sortOption}
           onSortChange={setSortOption}
         />
-        
+
         <ShoeCatalog
           shoes={filteredShoes}
           onWishlistClick={handleWishlistClick}
           wishlistIds={wishlistIds}
         />
       </motion.div>
-      
+
       <Footer />
+      <BackToTopButton />
     </motion.div>
   );
 };

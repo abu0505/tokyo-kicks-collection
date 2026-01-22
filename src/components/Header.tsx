@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, User, LogOut } from 'lucide-react';
+import { History, User, LogOut, Heart } from 'lucide-react';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useAuth } from '@/hooks/useAuth';
 import RecentlyViewedDropdown from './RecentlyViewedDropdown';
@@ -11,8 +11,12 @@ import {
 } from '@/components/ui/tooltip';
 import { toast } from 'sonner';
 
-const Header = () => {
-  const { recentlyViewed } = useRecentlyViewed();
+interface HeaderProps {
+  wishlistCount?: number;
+}
+
+const Header = ({ wishlistCount = 0 }: HeaderProps) => {
+  const { recentlyViewed, clearRecentlyViewed, removeFromRecentlyViewed } = useRecentlyViewed();
   const { user, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -32,45 +36,51 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-background/80 backdrop-blur-md border-b-2 border-foreground py-4 sticky top-0 z-50">
+    <header className="bg-background/80 backdrop-blur backdrop-saturate-150 border-b-2 border-foreground py-4 sticky top-0 z-50">
       <div className="container flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
           <span className="text-2xl font-black tracking-tighter">TOKYO</span>
           <span className="text-accent text-2xl font-black">•</span>
         </Link>
-        
+
         {/* Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          <a 
-            href="#catalog" 
+          <a
+            href="#catalog"
             onClick={scrollToCatalog}
             className="text-sm font-bold tracking-wide hover:text-accent transition-colors"
           >
             CATALOG
           </a>
-          <Link 
-            to="/?filter=new" 
+          <a
+            href="#catalog"
+            onClick={scrollToCatalog}
             className="text-sm font-bold tracking-wide hover:text-accent transition-colors"
           >
             NEW ARRIVALS
-          </Link>
-          <Link 
-            to="/?filter=brands" 
+          </a>
+          <a
+            href="#catalog"
+            onClick={scrollToCatalog}
             className="text-sm font-bold tracking-wide hover:text-accent transition-colors"
           >
             BRANDS
-          </Link>
+          </a>
         </nav>
-        
+
         {/* Right Side Actions */}
         <div className="flex items-center gap-3">
-          {/* Recently Viewed Dropdown with better icon */}
+          {/* Recently Viewed Dropdown */}
           {recentlyViewed.length > 0 && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="relative">
-                  <RecentlyViewedDropdown recentlyViewedIds={recentlyViewed} />
+                  <RecentlyViewedDropdown
+                    recentlyViewedIds={recentlyViewed}
+                    onRemoveItem={removeFromRecentlyViewed}
+                    onClearAll={clearRecentlyViewed}
+                  />
                 </div>
               </TooltipTrigger>
               <TooltipContent>
@@ -78,7 +88,27 @@ const Header = () => {
               </TooltipContent>
             </Tooltip>
           )}
-          
+
+          {/* Wishlist Button */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link to="/wishlist" className="relative">
+                <button className="relative p-2 hover:bg-accent/10 rounded-lg transition-colors group flex items-center gap-1.5">
+                  <Heart className="w-5 h-5" />
+                  <span className="text-xs font-bold tracking-wide hidden sm:inline">WISHLIST</span>
+                  {wishlistCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                      {wishlistCount}
+                    </span>
+                  )}
+                </button>
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>My Wishlist</p>
+            </TooltipContent>
+          </Tooltip>
+
           {/* Auth Section */}
           {user ? (
             <div className="flex items-center gap-2">

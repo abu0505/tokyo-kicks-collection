@@ -8,11 +8,16 @@ import { mockShoes, isNewArrival, Shoe } from '@/types/shoe';
 import { formatPrice } from '@/lib/format';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import ImageZoom from '@/components/ImageZoom';
+import BackToTopButton from '@/components/BackToTopButton';
+import ProductImageZoomV2 from '@/components/ProductImageZoomV2';
 import RelatedProducts from '@/components/RelatedProducts';
 import WhatsAppButton from '@/components/WhatsAppButton';
+import OrderInquiryModal from '@/components/OrderInquiryModal';
+import SizeGuideModal from '@/components/SizeGuideModal';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { toast } from 'sonner';
+
+const WISHLIST_STORAGE_KEY = 'tokyo_wishlist';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -23,6 +28,22 @@ const ProductDetail = () => {
   const { addToRecentlyViewed } = useRecentlyViewed();
 
   const shoe = mockShoes.find((s) => s.id === id);
+
+  // Load wishlist from localStorage on mount
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(WISHLIST_STORAGE_KEY);
+      if (stored) {
+        const ids = JSON.parse(stored);
+        setWishlistIds(ids);
+        if (shoe && ids.includes(shoe.id)) {
+          setIsWishlisted(true);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading wishlist:', error);
+    }
+  }, [shoe?.id]);
 
   // Scroll to top on mount
   useEffect(() => {
@@ -45,7 +66,7 @@ const ProductDetail = () => {
           <p className="text-muted-foreground mb-8">
             The shoe you're looking for doesn't exist or has been removed.
           </p>
-          <Button 
+          <Button
             onClick={() => navigate('/')}
             className="bg-foreground text-background hover:bg-foreground/90 px-8 py-6 font-bold"
           >
@@ -59,28 +80,47 @@ const ProductDetail = () => {
   const isNew = isNewArrival(shoe);
   const isSoldOut = shoe.status === 'sold_out';
 
-  const handleWishlistClick = () => {
-    setIsWishlisted(!isWishlisted);
-    if (isWishlisted) {
-      setWishlistIds((prev) => prev.filter((wid) => wid !== shoe.id));
-    } else {
-      setWishlistIds((prev) => [...prev, shoe.id]);
+  const saveWishlistToStorage = (ids: string[]) => {
+    try {
+      localStorage.setItem(WISHLIST_STORAGE_KEY, JSON.stringify(ids));
+    } catch (error) {
+      console.error('Error saving wishlist:', error);
     }
+  };
+
+  const handleWishlistClick = () => {
+    const newIsWishlisted = !isWishlisted;
+    setIsWishlisted(newIsWishlisted);
+
+    let newIds: string[];
+    if (newIsWishlisted) {
+      newIds = [...wishlistIds.filter(id => id !== shoe.id), shoe.id];
+    } else {
+      newIds = wishlistIds.filter((wid) => wid !== shoe.id);
+    }
+    setWishlistIds(newIds);
+    saveWishlistToStorage(newIds);
+
     toast.success(
-      isWishlisted 
-        ? `Removed ${shoe.name} from wishlist` 
-        : `Added ${shoe.name} to wishlist`
+      newIsWishlisted
+        ? `Added ${shoe.name} to wishlist`
+        : `Removed ${shoe.name} from wishlist`
     );
   };
 
   const handleRelatedWishlistClick = (relatedShoe: Shoe) => {
-    if (wishlistIds.includes(relatedShoe.id)) {
-      setWishlistIds((prev) => prev.filter((wid) => wid !== relatedShoe.id));
+    const isInWishlist = wishlistIds.includes(relatedShoe.id);
+    let newIds: string[];
+
+    if (isInWishlist) {
+      newIds = wishlistIds.filter((wid) => wid !== relatedShoe.id);
       toast.success(`Removed ${relatedShoe.name} from wishlist`);
     } else {
-      setWishlistIds((prev) => [...prev, relatedShoe.id]);
+      newIds = [...wishlistIds, relatedShoe.id];
       toast.success(`Added ${relatedShoe.name} to wishlist`);
     }
+    setWishlistIds(newIds);
+    saveWishlistToStorage(newIds);
   };
 
   const handleShare = async () => {
@@ -105,15 +145,15 @@ const ProductDetail = () => {
   };
 
   return (
-    <motion.div 
+    <motion.div
       className="min-h-screen bg-background"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
       <Header />
-      
-      <motion.main 
+
+      <motion.main
         className="container py-8"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -132,14 +172,14 @@ const ProductDetail = () => {
         <div className="grid lg:grid-cols-2 gap-12">
           {/* Image Section with Zoom */}
           <div className="relative">
-            <div className="aspect-square overflow-hidden border-2 border-foreground bg-secondary">
-              <ImageZoom
+            <div className="aspect-square border-2 border-foreground bg-secondary">
+              <ProductImageZoomV2
                 src={shoe.image}
                 alt={shoe.name}
                 className="w-full h-full"
               />
             </div>
-            
+
             {/* Badges */}
             <div className="absolute top-6 left-6 flex flex-col gap-2 pointer-events-none">
               {isNew && (
@@ -160,11 +200,10 @@ const ProductDetail = () => {
                 size="icon"
                 variant="secondary"
                 onClick={handleWishlistClick}
-                className={`w-12 h-12 rounded-full border-2 border-foreground transition-all ${
-                  isWishlisted 
-                    ? 'bg-accent text-accent-foreground hover:bg-accent/90' 
-                    : 'bg-background hover:bg-accent hover:text-accent-foreground'
-                }`}
+                className={`w-12 h-12 rounded-full border-2 border-foreground transition-all ${isWishlisted
+                  ? 'bg-accent text-accent-foreground hover:bg-accent/90'
+                  : 'bg-background hover:bg-accent hover:text-accent-foreground'
+                  }`}
               >
                 <Heart className={`h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
               </Button>
@@ -198,23 +237,23 @@ const ProductDetail = () => {
             <div className="mb-8">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-sm tracking-wide">SELECT SIZE (EU)</h3>
-                {selectedSize && (
-                  <span className="text-sm text-accent font-medium">
-                    Size {selectedSize} selected
-                  </span>
-                )}
+                <SizeGuideModal />
               </div>
+              {selectedSize && (
+                <p className="text-sm text-accent font-medium mb-3">
+                  Size {selectedSize} selected
+                </p>
+              )}
               <div className="flex flex-wrap gap-3">
                 {shoe.sizes.map((size) => (
                   <button
                     key={size}
                     onClick={() => !isSoldOut && setSelectedSize(size)}
                     disabled={isSoldOut}
-                    className={`w-14 h-14 border-2 font-bold text-lg transition-all ${
-                      selectedSize === size
-                        ? 'border-accent bg-accent text-accent-foreground'
-                        : 'border-foreground hover:border-accent hover:text-accent'
-                    } ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    className={`w-14 h-14 border-2 font-bold text-lg transition-all ${selectedSize === size
+                      ? 'border-accent bg-accent text-accent-foreground'
+                      : 'border-foreground hover:border-accent hover:text-accent'
+                      } ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     {size}
                   </button>
@@ -222,18 +261,30 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* CTA Button */}
-            <Button
-              onClick={handleVisitStore}
-              disabled={isSoldOut}
-              className={`w-full py-8 text-lg font-bold mb-8 transition-all ${
-                isSoldOut 
-                  ? 'bg-muted text-muted-foreground cursor-not-allowed' 
-                  : 'bg-foreground text-background hover:bg-accent hover:text-accent-foreground tokyo-shadow hover:-translate-y-1 hover:translate-x-1'
-              }`}
-            >
-              {isSoldOut ? 'SOLD OUT' : 'VISIT STORE TO PURCHASE'}
-            </Button>
+            {/* CTA Buttons */}
+            <div className="flex gap-3 mb-8">
+              <Button
+                onClick={handleWishlistClick}
+                disabled={isSoldOut}
+                className={`flex-1 h-14 text-lg font-bold transition-all ${isWishlisted
+                  ? 'bg-red-500 text-white hover:bg-red-600'
+                  : isSoldOut
+                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                    : 'bg-foreground text-background hover:bg-accent hover:text-accent-foreground tokyo-shadow hover:-translate-y-1 hover:translate-x-1'
+                  }`}
+              >
+                <Heart className={`mr-2 h-5 w-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                {isSoldOut ? 'SOLD OUT' : isWishlisted ? 'SAVED TO WISHLIST' : 'ADD TO WISHLIST'}
+              </Button>
+
+              {!isSoldOut && (
+                <OrderInquiryModal
+                  shoeId={shoe.id}
+                  shoeName={shoe.name}
+                  sizes={shoe.sizes}
+                />
+              )}
+            </div>
 
             {/* Store Info */}
             <div className="grid grid-cols-3 gap-4 mb-8">
@@ -290,6 +341,9 @@ const ProductDetail = () => {
 
       {/* WhatsApp Floating Button */}
       <WhatsAppButton shoe={shoe} selectedSize={selectedSize} />
+
+      {/* Back to Top Button */}
+      <BackToTopButton />
     </motion.div>
   );
 };

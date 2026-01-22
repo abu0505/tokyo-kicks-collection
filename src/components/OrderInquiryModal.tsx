@@ -89,7 +89,7 @@ const OrderInquiryModal = ({ shoeId, shoeName, sizes, trigger }: OrderInquiryMod
         {trigger || (
           <Button
             variant="outline"
-            className="border-2 border-foreground font-bold hover:bg-foreground hover:text-background"
+            className="h-14 border-2 border-foreground font-bold hover:bg-foreground hover:text-background"
           >
             <MessageSquare className="mr-2 h-4 w-4" />
             INQUIRE NOW

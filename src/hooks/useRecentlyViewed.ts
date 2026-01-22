@@ -38,6 +38,14 @@ export const useRecentlyViewed = () => {
     });
   };
 
+  const removeFromRecentlyViewed = (shoeId: string) => {
+    setRecentlyViewed((prev) => {
+      const updated = prev.filter((id) => id !== shoeId);
+      updateStorage(updated);
+      return updated;
+    });
+  };
+
   const clearRecentlyViewed = () => {
     setRecentlyViewed([]);
     localStorage.removeItem(STORAGE_KEY);
@@ -46,6 +54,7 @@ export const useRecentlyViewed = () => {
   return {
     recentlyViewed,
     addToRecentlyViewed,
+    removeFromRecentlyViewed,
     clearRecentlyViewed,
   };
 };
