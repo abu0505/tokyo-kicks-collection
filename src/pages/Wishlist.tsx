@@ -1,22 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Shoe } from '@/types/shoe';
-import { formatPrice } from '@/lib/format';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Calendar, User, X, Loader2 } from 'lucide-react';
+import { Heart, Calendar, User } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/contexts/WishlistContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
+import ShoeCard from '@/components/ShoeCard';
+import QuickViewModal from '@/components/QuickViewModal';
+import { useShoeRatings } from '@/hooks/useReviews';
 
 const Wishlist = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { wishlistIds, removeFromWishlist } = useWishlist();
+  const [quickViewShoe, setQuickViewShoe] = useState<DbShoe | null>(null);
 
   const { data: wishlistShoes = [], isLoading } = useQuery({
     queryKey: ['wishlist-shoes', wishlistIds],
@@ -44,16 +47,45 @@ const Wishlist = () => {
     enabled: wishlistIds.length > 0,
   });
 
+  // Get shoe IDs for rating fetch
+  const shoeIds = useMemo(() => wishlistShoes.map(s => s.id), [wishlistShoes]);
+  const { ratings } = useShoeRatings(shoeIds);
+
   const handleRemoveFromWishlist = (shoe: Shoe) => {
     removeFromWishlist(shoe.id, shoe.name);
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
-    if (seconds < 60) return 'Just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`;
-    return `${Math.floor(seconds / 86400)} days ago`;
+  // Convert Shoe to DbShoe format for QuickViewModal
+  const handleQuickView = (shoe: Shoe) => {
+    const dbShoe: DbShoe = {
+      id: shoe.id,
+      name: shoe.name,
+      brand: shoe.brand,
+      price: shoe.price,
+      image_url: shoe.image,
+      sizes: shoe.sizes,
+      status: shoe.status,
+      created_at: shoe.createdAt.toISOString(),
+      updated_at: null
+    };
+    setQuickViewShoe(dbShoe);
+  };
+
+  const handleQuickViewWishlist = (dbShoe: DbShoe) => {
+    // For wishlist page, clicking heart in modal should remove it
+    // But QuickViewModal usually toggles. 
+    // If it's in wishlist (which it is), it will call this.
+    const shoe: Shoe = {
+      id: dbShoe.id,
+      name: dbShoe.name,
+      brand: dbShoe.brand,
+      price: dbShoe.price,
+      image: dbShoe.image_url || '',
+      sizes: dbShoe.sizes,
+      status: dbShoe.status,
+      createdAt: new Date(dbShoe.created_at),
+    };
+    handleRemoveFromWishlist(shoe);
   };
 
   const currentDate = new Date();
@@ -137,7 +169,7 @@ const Wishlist = () => {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             <AnimatePresence>
               {wishlistShoes.map((shoe, index) => (
                 <motion.div
@@ -146,59 +178,16 @@ const Wishlist = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ delay: index * 0.05 }}
-                  className="relative group"
+                  className="h-full"
                 >
-                  <div
-                    onClick={() => navigate(`/product/${shoe.id}`)}
-                    className="bg-secondary/30 border border-foreground/10 rounded-xl overflow-hidden cursor-pointer h-full"
-                  >
-                    {/* Time Badge */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
-                        Saved {formatTimeAgo(new Date(Date.now() - Math.random() * 86400000 * 7))}
-                      </span>
-                    </div>
-
-                    {/* Remove Button */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveFromWishlist(shoe);
-                      }}
-                      className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-background/80 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-
-                    {/* Image */}
-                    <div className="aspect-square bg-gradient-to-br from-secondary to-secondary/50 flex items-center justify-center">
-                      <img
-                        src={shoe.image}
-                        alt={shoe.name}
-                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                      />
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-4">
-                      <p className="text-xs text-red-500 font-bold mb-1">
-                        {shoe.brand.toUpperCase()}
-                      </p>
-                      <h3 className="font-bold text-sm mb-1 line-clamp-1">{shoe.name}</h3>
-                      <p className="text-xs text-muted-foreground mb-3">
-                        ◇ Size: {shoe.sizes.join(', ')}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <p className="font-bold">{formatPrice(shoe.price)}</p>
-                        <span className={`text-xs font-medium flex items-center gap-1 ${shoe.status === 'sold_out' ? 'text-red-500' : 'text-emerald-500'
-                          }`}>
-                          <span className={`w-1.5 h-1.5 rounded-full ${shoe.status === 'sold_out' ? 'bg-red-500' : 'bg-emerald-500'
-                            }`}></span>
-                          {shoe.status === 'sold_out' ? 'Sold Out' : 'In Stock'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+                  <ShoeCard
+                    shoe={shoe}
+                    onWishlistClick={handleRemoveFromWishlist}
+                    isInWishlist={true}
+                    onQuickView={handleQuickView}
+                    rating={ratings[shoe.id]?.averageRating}
+                    totalReviews={ratings[shoe.id]?.totalReviews}
+                  />
                 </motion.div>
               ))}
             </AnimatePresence>
@@ -208,6 +197,17 @@ const Wishlist = () => {
 
       <Footer />
       <BackToTopButton />
+
+      {/* Quick View Modal */}
+      <QuickViewModal
+        shoe={quickViewShoe}
+        open={!!quickViewShoe}
+        onClose={() => setQuickViewShoe(null)}
+        onWishlistClick={handleQuickViewWishlist}
+        isInWishlist={true}
+        rating={quickViewShoe ? ratings[quickViewShoe.id]?.averageRating : undefined}
+        totalReviews={quickViewShoe ? ratings[quickViewShoe.id]?.totalReviews : undefined}
+      />
     </div>
   );
 };

@@ -29,7 +29,7 @@ const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView, ra
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative bg-card border-2 border-foreground overflow-hidden transition-all cursor-pointer hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 ${isSoldOut ? 'opacity-60' : ''
+      className={`group relative bg-card border-2 border-foreground overflow-hidden transition-all cursor-pointer hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 h-full flex flex-col ${isSoldOut ? 'opacity-60' : ''
         }`}
     >
       {/* Image Container */}
@@ -81,7 +81,7 @@ const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView, ra
       </div>
 
       {/* Info */}
-      <div className="p-5">
+      <div className="p-5 flex flex-col flex-1">
         {/* Brand & Rating */}
         <div className="flex items-center justify-between mb-1">
           <p className="text-sm text-muted-foreground font-bold tracking-wide">
@@ -115,7 +115,7 @@ const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView, ra
         </div>
 
         {/* Price */}
-        <div className="flex items-center justify-between pt-4 border-t border-border bg-white">
+        <div className="flex items-center justify-between pt-4 border-t border-border bg-white mt-auto">
           <p className="text-2xl font-black">
             {formatPrice(shoe.price)}
           </p>

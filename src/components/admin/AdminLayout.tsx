@@ -51,7 +51,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen overflow-hidden bg-background flex">
       {/* Sidebar */}
       <aside className="w-64 bg-background border-r border-border text-foreground flex flex-col">
         {/* Logo */}

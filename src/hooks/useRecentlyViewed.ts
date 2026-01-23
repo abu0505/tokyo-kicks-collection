@@ -1,72 +1,117 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
-const BASE_STORAGE_KEY = 'tokyo_recently_viewed';
 const MAX_ITEMS = 6;
 
 export const useRecentlyViewed = () => {
   const { user } = useAuth();
   const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
 
-  // Get user-specific storage key
-  const getStorageKey = useCallback(() => {
-    return user ? `${BASE_STORAGE_KEY}_${user.id}` : `${BASE_STORAGE_KEY}_guest`;
-  }, [user]);
-
-  // Load from localStorage on mount or when user changes
+  // Load items
   useEffect(() => {
-    try {
-      const storageKey = getStorageKey();
-      const stored = localStorage.getItem(storageKey);
-      if (stored) {
-        setRecentlyViewed(JSON.parse(stored));
+    const loadItems = async () => {
+      if (user) {
+        // Load from Supabase for logged-in users
+        try {
+          const { data, error } = await supabase
+            .from('recently_viewed')
+            .select('shoe_id')
+            .eq('user_id', user.id)
+            .order('viewed_at', { ascending: false })
+            .limit(MAX_ITEMS);
+
+          if (error) {
+            console.error('Error loading recently viewed from DB:', error);
+            return;
+          }
+
+          if (data) {
+            setRecentlyViewed(data.map(item => item.shoe_id));
+          }
+        } catch (error) {
+          console.error('Error in loadItems:', error);
+        }
       } else {
+        // Clear for guests
         setRecentlyViewed([]);
       }
-    } catch (error) {
-      console.error('Error loading recently viewed:', error);
-      setRecentlyViewed([]);
-    }
-  }, [getStorageKey]);
+    };
 
-  // Save to localStorage whenever it changes
-  const updateStorage = useCallback((items: string[]) => {
-    try {
-      const storageKey = getStorageKey();
-      localStorage.setItem(storageKey, JSON.stringify(items));
-    } catch (error) {
-      console.error('Error saving recently viewed:', error);
-    }
-  }, [getStorageKey]);
+    loadItems();
+  }, [user]);
 
-  const addToRecentlyViewed = useCallback((shoeId: string) => {
+  const addToRecentlyViewed = useCallback(async (shoeId: string) => {
+    if (!user) return;
+
+    // Optimistic update
     setRecentlyViewed((prev) => {
-      // Remove if already exists to avoid duplicates
       const filtered = prev.filter((id) => id !== shoeId);
-      // Add to the beginning
-      const updated = [shoeId, ...filtered].slice(0, MAX_ITEMS);
-      updateStorage(updated);
-      return updated;
+      return [shoeId, ...filtered].slice(0, MAX_ITEMS);
     });
-  }, [updateStorage]);
 
-  const removeFromRecentlyViewed = useCallback((shoeId: string) => {
-    setRecentlyViewed((prev) => {
-      const updated = prev.filter((id) => id !== shoeId);
-      updateStorage(updated);
-      return updated;
-    });
-  }, [updateStorage]);
-
-  const clearRecentlyViewed = useCallback(() => {
-    setRecentlyViewed([]);
+    // Save to Supabase
     try {
-      const storageKey = getStorageKey();
-      localStorage.removeItem(storageKey);
+      const { error } = await supabase
+        .from('recently_viewed')
+        .upsert({
+          user_id: user.id,
+          shoe_id: shoeId,
+          viewed_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,shoe_id'
+        });
+
+      if (error) {
+        console.error('Error adding to recently viewed DB:', error);
+      }
     } catch (error) {
-      console.error('Error clearing recently viewed:', error);
+      console.error('Error in addToRecentlyViewed DB:', error);
     }
-  }, [getStorageKey]);
+  }, [user]);
+
+  const removeFromRecentlyViewed = useCallback(async (shoeId: string) => {
+    if (!user) return;
+
+    // Optimistic update
+    setRecentlyViewed((prev) => prev.filter((id) => id !== shoeId));
+
+    // Remove from Supabase
+    try {
+      const { error } = await supabase
+        .from('recently_viewed')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('shoe_id', shoeId);
+
+      if (error) {
+        console.error('Error removing from recently viewed DB:', error);
+      }
+    } catch (error) {
+      console.error('Error in removeFromRecentlyViewed DB:', error);
+    }
+  }, [user]);
+
+  const clearRecentlyViewed = useCallback(async () => {
+    if (!user) return;
+
+    // Optimistic update
+    setRecentlyViewed([]);
+
+    // Clear from Supabase
+    try {
+      const { error } = await supabase
+        .from('recently_viewed')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error clearing recently viewed DB:', error);
+      }
+    } catch (error) {
+      console.error('Error in clearRecentlyViewed DB:', error);
+    }
+  }, [user]);
 
   return {
     recentlyViewed,

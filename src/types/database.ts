@@ -19,6 +19,7 @@ export type Database = {
           sizes: number[]
           status: 'in_stock' | 'sold_out'
           created_at: string
+          updated_at: string | null
         }
         Insert: {
           id?: string
@@ -29,6 +30,7 @@ export type Database = {
           sizes?: number[]
           status?: 'in_stock' | 'sold_out'
           created_at?: string
+          updated_at?: string | null
         }
         Update: {
           id?: string
@@ -39,6 +41,7 @@ export type Database = {
           sizes?: number[]
           status?: 'in_stock' | 'sold_out'
           created_at?: string
+          updated_at?: string | null
         }
       }
       profiles: {
@@ -100,6 +103,26 @@ export type Database = {
           id?: string
           user_id?: string
           role?: 'admin' | 'customer'
+        }
+      }
+      recently_viewed: {
+        Row: {
+          id: string
+          user_id: string
+          shoe_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          shoe_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          shoe_id?: string
+          viewed_at?: string
         }
       }
     }

@@ -63,7 +63,7 @@ const Contact = () => {
         {
             icon: MapPin,
             title: 'Location',
-            value: 'Emad flat tp85 road sarkhej',
+            value: 'Tokyo Fashion Juhapura',
             color: 'bg-blue-500/20 text-blue-500'
         },
         {
@@ -241,87 +241,87 @@ const Contact = () => {
                         </div>
                     </motion.div>
 
-                    {/* FAQ Section with Accordion */}
+                    {/* Interactive Map Section */}
                     <motion.div
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.3 }}
                     >
-                        <div className="bg-secondary/30 border border-foreground/10 rounded-xl p-8 h-full">
-                            <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
-
-                            <div className="space-y-3">
-                                {faqItems.map((item, index) => (
-                                    <div
-                                        key={index}
-                                        className="border border-foreground/10 rounded-lg overflow-hidden bg-background/30"
-                                    >
-                                        <button
-                                            onClick={() => toggleFAQ(index)}
-                                            className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-secondary/50 transition-colors"
-                                        >
-                                            <span className="font-bold text-sm pr-4">{item.question}</span>
-                                            <motion.div
-                                                animate={{ rotate: expandedFAQ === index ? 180 : 0 }}
-                                                transition={{ duration: 0.2 }}
-                                                className="flex-shrink-0"
-                                            >
-                                                <ChevronDown className="w-5 h-5 text-muted-foreground" />
-                                            </motion.div>
-                                        </button>
-                                        <AnimatePresence>
-                                            {expandedFAQ === index && (
-                                                <motion.div
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    transition={{ duration: 0.2, ease: 'easeInOut' }}
-                                                    className="overflow-hidden"
-                                                >
-                                                    <div className="px-5 pb-4 pt-0">
-                                                        <p className="text-sm text-muted-foreground leading-relaxed">
-                                                            {item.answer}
-                                                        </p>
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                ))}
+                        <div className="bg-secondary/30 border border-foreground/10 rounded-xl overflow-hidden h-full flex flex-col">
+                            <div className="p-4 border-b border-foreground/10 flex items-center gap-3 shrink-0">
+                                <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                                    <MapPin className="w-4 h-4 text-blue-500" />
+                                </div>
+                                <div>
+                                    <h3 className="font-bold">Find Us</h3>
+                                    <p className="text-sm text-muted-foreground">Tokyo Fashion Juhapura</p>
+                                </div>
+                            </div>
+                            <div className="w-full flex-grow min-h-[400px]">
+                                <iframe
+                                    src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=Tokyo+Fashion,Juhapura,Ahmedabad,Gujarat,India&zoom=15"
+                                    width="100%"
+                                    height="100%"
+                                    style={{ border: 0 }}
+                                    allowFullScreen
+                                    loading="lazy"
+                                    referrerPolicy="no-referrer-when-downgrade"
+                                    title="Store Location Map"
+                                    className="grayscale hover:grayscale-0 transition-all duration-500"
+                                ></iframe>
                             </div>
                         </div>
                     </motion.div>
                 </div>
 
-                {/* Interactive Map Section - Moved to bottom */}
+                {/* FAQ Section - Moved to bottom */}
                 <motion.div
-                    className="mb-12"
+                    className="mb-12 pt-12"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                    <div className="bg-secondary/30 border border-foreground/10 rounded-xl overflow-hidden">
-                        <div className="p-4 border-b border-foreground/10 flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                                <MapPin className="w-4 h-4 text-blue-500" />
-                            </div>
-                            <div>
-                                <h3 className="font-bold">Find Us</h3>
-                                <p className="text-sm text-muted-foreground">Emad flat tp85 road sarkhej</p>
-                            </div>
-                        </div>
-                        <div className="aspect-[21/9] w-full">
-                            <iframe
-                                src="https://www.google.com/maps/embed/v1/place?key=AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8&q=Emad+flat+tp85+road+sarkhej,Ahmedabad,Gujarat,India&zoom=15"
-                                width="100%"
-                                height="100%"
-                                style={{ border: 0 }}
-                                allowFullScreen
-                                loading="lazy"
-                                referrerPolicy="no-referrer-when-downgrade"
-                                title="Store Location Map"
-                                className="grayscale hover:grayscale-0 transition-all duration-500"
-                            ></iframe>
+                    <div className="bg-secondary/30 border border-foreground/10 rounded-xl p-8">
+                        <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
+
+                        <div className="space-y-3">
+                            {faqItems.map((item, index) => (
+                                <div
+                                    key={index}
+                                    className="border border-foreground/10 rounded-lg overflow-hidden bg-background/30"
+                                >
+                                    <button
+                                        onClick={() => toggleFAQ(index)}
+                                        className="w-full px-5 py-4 flex items-center justify-between text-left hover:bg-secondary/50 transition-colors"
+                                    >
+                                        <span className="font-bold text-sm pr-4">{item.question}</span>
+                                        <motion.div
+                                            animate={{ rotate: expandedFAQ === index ? 180 : 0 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="flex-shrink-0"
+                                        >
+                                            <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                                        </motion.div>
+                                    </button>
+                                    <AnimatePresence>
+                                        {expandedFAQ === index && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: 'auto', opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.2, ease: 'easeInOut' }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="px-5 pb-4 pt-0">
+                                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                                        {item.answer}
+                                                    </p>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </motion.div>

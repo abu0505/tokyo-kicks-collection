@@ -138,8 +138,8 @@ const FilterBar = ({
                     key={brand}
                     variant={selectedBrands.includes(brand) ? 'default' : 'outline'}
                     className={`cursor-pointer px-4 py-2 text-sm font-medium transition-all ${selectedBrands.includes(brand)
-                        ? 'bg-foreground text-background hover:bg-foreground/90'
-                        : 'border-2 border-foreground hover:bg-foreground hover:text-background'
+                      ? 'bg-foreground text-background hover:bg-foreground/90'
+                      : 'border-2 border-foreground hover:bg-foreground hover:text-background'
                       }`}
                     onClick={() => onBrandToggle(brand)}
                   >
@@ -158,8 +158,8 @@ const FilterBar = ({
                     key={size}
                     variant={selectedSizes.includes(size) ? 'default' : 'outline'}
                     className={`cursor-pointer w-12 h-10 flex items-center justify-center text-sm font-medium transition-all ${selectedSizes.includes(size)
-                        ? 'bg-foreground text-background hover:bg-foreground/90'
-                        : 'border-2 border-foreground hover:bg-foreground hover:text-background'
+                      ? 'bg-foreground text-background hover:bg-foreground/90'
+                      : 'border-2 border-foreground hover:bg-foreground hover:text-background'
                       }`}
                     onClick={() => onSizeToggle(size)}
                   >
@@ -174,11 +174,11 @@ const FilterBar = ({
               <h3 className="font-bold text-sm mb-3 tracking-wide">PRICE RANGE</h3>
               <div className="px-2">
                 <Slider
-                  value={priceRange}
+                  value={[priceRange[1]]}
                   min={minPrice}
                   max={maxPrice}
                   step={500}
-                  onValueChange={(value) => onPriceChange(value as [number, number])}
+                  onValueChange={(value) => onPriceChange([minPrice, value[0]])}
                   className="mb-4"
                 />
                 <div className="flex justify-between text-sm font-medium">

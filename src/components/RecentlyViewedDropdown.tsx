@@ -129,7 +129,7 @@ const RecentlyViewedDropdown = ({
               {onRemoveItem && (
                 <button
                   onClick={(e) => handleRemoveItem(e, shoe!.id)}
-                  className="absolute top-3 right-3 w-6 h-6 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground 
+                  className="absolute top-1/2 -translate-y-1/2 right-3 w-6 h-6 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground 
                              flex items-center justify-center transition-colors opacity-0 group-hover/item:opacity-100"
                   title="Remove from recently viewed"
                 >

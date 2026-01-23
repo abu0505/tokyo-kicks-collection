@@ -62,7 +62,7 @@ const Auth = () => {
         toast.success(fullName ? `Welcome back, ${fullName}!` : 'Welcome back!');
         navigate(from, { replace: true });
       } else {
-        const { error } = await signUp(data.email, data.password, data.fullName || '');
+        const { data: signUpData, error } = await signUp(data.email, data.password, data.fullName || '');
         if (error) {
           if (error.message.includes('User already registered')) {
             toast.error('An account with this email already exists');
@@ -71,9 +71,15 @@ const Auth = () => {
           }
           return;
         }
-        toast.success('Account created! Please check your email to verify.');
-        setIsLogin(true);
-        reset();
+
+        // If email confirmation is disabled, we get a session immediately
+        if (signUpData.session) {
+          toast.success('Account created! Welcome!');
+        } else {
+          toast.success('Account created! Please check your email to verify.');
+          setIsLogin(true);
+          reset();
+        }
       }
     } finally {
       setIsSubmitting(false);

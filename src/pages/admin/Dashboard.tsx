@@ -9,14 +9,13 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 
 const AdminDashboard = () => {
-  // Fetch all shoes for dashboard stats
+  // Fetch all shoes for dashboard stats and recent activity
   const { data: shoes = [], isLoading } = useQuery({
     queryKey: ['admin-dashboard-shoes'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('shoes')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
 
       if (error) throw error;
       return data as DbShoe[];
@@ -29,8 +28,36 @@ const AdminDashboard = () => {
   const soldOutCount = shoes.filter(shoe => shoe.status === 'sold_out').length;
   const totalValue = shoes.reduce((sum, shoe) => sum + shoe.price, 0);
 
-  // Recent activity (last 5 added shoes)
-  const recentActivity = shoes.slice(0, 5);
+  // Recent activity (last 10 changed shoes)
+  /*
+     Sort items by updated_at (or created_at if null) descending.
+     Determine activity type:
+     - If updated_at is close to created_at (within 60s) -> "added"
+     - If status is 'sold_out' and updated recently -> "marked sold out"? 
+       (Hard to differentiate edit vs status change without logs, but we can verify requirement:
+       "recent activity should store last 10 product also when admin edit any product or mark the product out of stock then it should update that also in the recent activity."
+       Since we just have updated_at, any change bumps it. We display the current status.
+       We can infer "Newly Added" vs "Updated".
+  */
+
+  const recentActivity = [...shoes]
+    .sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at).getTime();
+      const dateB = new Date(b.updated_at || b.created_at).getTime();
+      return dateB - dateA;
+    })
+    .slice(0, 10);
+
+  const getActivityType = (shoe: DbShoe) => {
+    const created = new Date(shoe.created_at).getTime();
+    const updated = new Date(shoe.updated_at || shoe.created_at).getTime();
+
+    // If updated within 1 minute of creation, treat as "Added"
+    if (updated - created < 60000) return 'New Arrival';
+
+    // Otherwise "Updated"
+    return 'Updated';
+  };
 
   const statCards = [
     {
@@ -123,7 +150,7 @@ const AdminDashboard = () => {
             <h2 className="text-xl font-black">Recent Activity</h2>
           </div>
           <p className="text-sm text-muted-foreground mb-6">
-            A log of recent inventory changes.
+            Last 10 updates to the inventory.
           </p>
 
           {isLoading ? (
@@ -162,7 +189,12 @@ const AdminDashboard = () => {
 
                   {/* Shoe Info */}
                   <div className="flex-1 min-w-0">
-                    <p className="font-bold truncate">{shoe.name}</p>
+                    <div className="flex items-center gap-2">
+                      <p className="font-bold truncate">{shoe.name}</p>
+                      <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-foreground/10 text-muted-foreground">
+                        {getActivityType(shoe)}
+                      </span>
+                    </div>
                     <p className="text-sm text-muted-foreground">{shoe.brand}</p>
                   </div>
 
@@ -170,7 +202,7 @@ const AdminDashboard = () => {
                   <div className="text-right">
                     <p className="font-bold text-accent">{formatPrice(shoe.price)}</p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDate(new Date(shoe.created_at))}
+                      {formatDate(new Date(shoe.updated_at || shoe.created_at))}
                     </p>
                   </div>
 

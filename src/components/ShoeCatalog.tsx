@@ -78,7 +78,7 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
             {shoes.map((shoe, index) => (
               <div
                 key={shoe.id}
-                className="animate-fade-in"
+                className="animate-fade-in h-full"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <ShoeCard
