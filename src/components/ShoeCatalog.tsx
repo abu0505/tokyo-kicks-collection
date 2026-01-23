@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Shoe } from '@/types/shoe';
 import { DbShoe } from '@/types/database';
 import ShoeCard from './ShoeCard';
 import QuickViewModal from './QuickViewModal';
+import { useShoeRatings } from '@/hooks/useReviews';
 
 interface ShoeCatalogProps {
   shoes: Shoe[];
@@ -12,6 +13,10 @@ interface ShoeCatalogProps {
 
 const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) => {
   const [quickViewShoe, setQuickViewShoe] = useState<DbShoe | null>(null);
+
+  // Get shoe IDs for rating fetch
+  const shoeIds = useMemo(() => shoes.map(s => s.id), [shoes]);
+  const { ratings } = useShoeRatings(shoeIds);
 
   // Convert Shoe to DbShoe format for QuickViewModal
   const handleQuickView = (shoe: Shoe) => {
@@ -69,7 +74,7 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {shoes.map((shoe, index) => (
               <div
                 key={shoe.id}
@@ -81,6 +86,8 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
                   onWishlistClick={onWishlistClick}
                   isInWishlist={wishlistIds.includes(shoe.id)}
                   onQuickView={handleQuickView}
+                  rating={ratings[shoe.id]?.averageRating}
+                  totalReviews={ratings[shoe.id]?.totalReviews}
                 />
               </div>
             ))}
@@ -95,6 +102,8 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
         onClose={() => setQuickViewShoe(null)}
         onWishlistClick={handleQuickViewWishlist}
         isInWishlist={quickViewShoe ? wishlistIds.includes(quickViewShoe.id) : false}
+        rating={quickViewShoe ? ratings[quickViewShoe.id]?.averageRating : undefined}
+        totalReviews={quickViewShoe ? ratings[quickViewShoe.id]?.totalReviews : undefined}
       />
     </>
   );

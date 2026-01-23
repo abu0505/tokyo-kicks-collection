@@ -1,13 +1,16 @@
 import { useState, useMemo, useRef } from 'react';
 import { motion } from 'framer-motion';
+import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
 import HeroSection from '@/components/HeroSection';
 import FilterBar, { SortOption } from '@/components/FilterBar';
 import ShoeCatalog from '@/components/ShoeCatalog';
 import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
-import { mockShoes, getUniqueBrands, getUniqueSizes, getPriceRange, Shoe } from '@/types/shoe';
+import { getUniqueBrands, getUniqueSizes, getPriceRange, Shoe } from '@/types/shoe';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { supabase } from '@/integrations/supabase/client';
+import { DbShoe } from '@/types/database';
 
 const Index = () => {
   const catalogRef = useRef<HTMLDivElement>(null);
@@ -18,20 +21,57 @@ const Index = () => {
   const [selectedSizes, setSelectedSizes] = useState<number[]>([]);
   const [sortOption, setSortOption] = useState<SortOption>('newest');
 
+  // Fetch shoes from Supabase
+  const { data: shoes = [], isLoadingRaw } = useQuery({
+    queryKey: ['catalog-shoes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('shoes')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Map DbShoe to Shoe interface
+      return (data as DbShoe[]).map(shoe => ({
+        id: shoe.id,
+        name: shoe.name,
+        brand: shoe.brand,
+        price: shoe.price,
+        image: shoe.image_url || '',
+        sizes: shoe.sizes,
+        status: shoe.status,
+        createdAt: new Date(shoe.created_at)
+      })) as Shoe[];
+    },
+  });
+
   // Price range from data
-  const { min: minPrice, max: maxPrice } = getPriceRange(mockShoes);
-  const [priceRange, setPriceRange] = useState<[number, number]>([minPrice, maxPrice]);
+  // Recalculate based on real data, defaulting to 0-1000 if empty to avoid issues
+  const { min: minPrice, max: maxPrice } = useMemo(() => {
+    if (shoes.length === 0) return { min: 0, max: 1000 };
+    return getPriceRange(shoes);
+  }, [shoes]);
+
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
+
+  // Update price range state when data loads
+  useMemo(() => {
+    if (shoes.length > 0) {
+      setPriceRange([minPrice, maxPrice]);
+    }
+  }, [minPrice, maxPrice]); // Effectively runs when price stats change
 
   // Wishlist from context (synced with database)
   const { wishlistIds, toggleWishlist } = useWishlist();
 
   // Computed values
-  const availableBrands = useMemo(() => getUniqueBrands(mockShoes), []);
-  const availableSizes = useMemo(() => getUniqueSizes(mockShoes), []);
+  const availableBrands = useMemo(() => getUniqueBrands(shoes), [shoes]);
+  const availableSizes = useMemo(() => getUniqueSizes(shoes), [shoes]);
 
   // Filter and sort logic
   const filteredShoes = useMemo(() => {
-    let result = mockShoes.filter((shoe) => {
+    let result = shoes.filter((shoe) => {
       // Search filter
       const matchesSearch =
         searchQuery === '' ||
@@ -72,7 +112,7 @@ const Index = () => {
     }
 
     return result;
-  }, [searchQuery, selectedBrands, selectedSizes, priceRange, sortOption]);
+  }, [shoes, searchQuery, selectedBrands, selectedSizes, priceRange, sortOption]);
 
   // Handlers
   const handleBrandToggle = (brand: string) => {

@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw, Loader2 } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { mockShoes, isNewArrival, Shoe } from '@/types/shoe';
+import { isNewArrival, Shoe } from '@/types/shoe';
 import { formatPrice } from '@/lib/format';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -12,13 +13,17 @@ import BackToTopButton from '@/components/BackToTopButton';
 import ProductImageZoomV2 from '@/components/ProductImageZoomV2';
 import RelatedProducts from '@/components/RelatedProducts';
 import WhatsAppButton from '@/components/WhatsAppButton';
-import OrderInquiryModal from '@/components/OrderInquiryModal';
+
 import SizeGuideModal from '@/components/SizeGuideModal';
 import ReviewForm from '@/components/reviews/ReviewForm';
 import ReviewList from '@/components/reviews/ReviewList';
+import StarRating from '@/components/StarRating';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { useReviews } from '@/hooks/useReviews';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { DbShoe } from '@/types/database';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -27,8 +32,39 @@ const ProductDetail = () => {
   const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { wishlistIds, toggleWishlist, isInWishlist } = useWishlist();
+  const { stats: reviewStats, refetch: refetchReviews } = useReviews(id);
 
-  const shoe = mockShoes.find((s) => s.id === id);
+  const { data: shoe, isLoading } = useQuery({
+    queryKey: ['shoe', id],
+    queryFn: async () => {
+      if (!id) return null;
+
+      const { data, error } = await supabase
+        .from('shoes')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        console.error('Error fetching shoe:', error);
+        return null;
+      }
+
+      const dbShoe = data as DbShoe;
+      return {
+        id: dbShoe.id,
+        name: dbShoe.name,
+        brand: dbShoe.brand,
+        price: dbShoe.price,
+        image: dbShoe.image_url || '',
+        sizes: dbShoe.sizes,
+        status: dbShoe.status,
+        createdAt: new Date(dbShoe.created_at)
+      } as Shoe;
+    },
+    enabled: !!id,
+  });
+
   const isWishlisted = shoe ? isInWishlist(shoe.id) : false;
 
   // Scroll to top on mount
@@ -42,6 +78,14 @@ const ProductDetail = () => {
       addToRecentlyViewed(shoe.id);
     }
   }, [shoe?.id, addToRecentlyViewed]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="h-12 w-12 animate-spin text-foreground" />
+      </div>
+    );
+  }
 
   if (!shoe) {
     return (
@@ -163,18 +207,22 @@ const ProductDetail = () => {
 
           {/* Product Info */}
           <div className="flex flex-col">
-            {/* Brand & Name */}
-            <p className="text-sm text-muted-foreground font-bold tracking-widest mb-2">
-              {shoe.brand.toUpperCase()}
-            </p>
+            {/* Brand & Name & Rating */}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-sm text-muted-foreground font-bold tracking-widest">
+                {shoe.brand.toUpperCase()}
+              </p>
+              {reviewStats.totalReviews > 0 && (
+                <StarRating
+                  rating={reviewStats.averageRating}
+                  totalReviews={reviewStats.totalReviews}
+                  size="sm"
+                />
+              )}
+            </div>
             <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight">
               {shoe.name}
             </h1>
-
-            {/* Price */}
-            <p className="text-4xl font-black mb-8">
-              {formatPrice(shoe.price)}
-            </p>
 
             {/* Size Selection */}
             <div className="mb-8">
@@ -193,7 +241,7 @@ const ProductDetail = () => {
                     key={size}
                     onClick={() => !isSoldOut && setSelectedSize(size)}
                     disabled={isSoldOut}
-                    className={`w-14 h-14 border-2 font-bold text-lg transition-all ${selectedSize === size
+                    className={`w-10 h-10 border-2 font-bold text-lg transition-all ${selectedSize === size
                       ? 'border-accent bg-accent text-accent-foreground'
                       : 'border-foreground hover:border-accent hover:text-accent'
                       } ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
@@ -203,6 +251,11 @@ const ProductDetail = () => {
                 ))}
               </div>
             </div>
+
+            {/* Price */}
+            <p className="text-4xl font-black mb-8">
+              {formatPrice(shoe.price)}
+            </p>
 
             {/* CTA Buttons */}
             <div className="flex gap-3 mb-8">
@@ -220,13 +273,7 @@ const ProductDetail = () => {
                 {isSoldOut ? 'SOLD OUT' : isWishlisted ? 'SAVED TO WISHLIST' : 'ADD TO WISHLIST'}
               </Button>
 
-              {!isSoldOut && (
-                <OrderInquiryModal
-                  shoeId={shoe.id}
-                  shoeName={shoe.name}
-                  sizes={shoe.sizes}
-                />
-              )}
+
             </div>
 
             {/* Store Info */}
@@ -277,15 +324,18 @@ const ProductDetail = () => {
           <h2 className="text-2xl font-black mb-8">CUSTOMER REVIEWS</h2>
           <div className="grid lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <ReviewList 
-                shoeId={shoe.id} 
+              <ReviewList
+                shoeId={shoe.id}
                 refreshTrigger={reviewRefreshTrigger}
               />
             </div>
             <div>
-              <ReviewForm 
+              <ReviewForm
                 shoeId={shoe.id}
-                onReviewSubmitted={() => setReviewRefreshTrigger(prev => prev + 1)}
+                onReviewSubmitted={() => {
+                  setReviewRefreshTrigger(prev => prev + 1);
+                  refetchReviews();
+                }}
               />
             </div>
           </div>

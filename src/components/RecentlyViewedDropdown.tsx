@@ -1,7 +1,10 @@
-import { History, X, Trash2 } from 'lucide-react';
+import { History, X, Trash2, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { mockShoes } from '@/types/shoe';
+import { useQuery } from '@tanstack/react-query';
+import { Shoe } from '@/types/shoe';
 import { formatPrice } from '@/lib/format';
+import { supabase } from '@/integrations/supabase/client';
+import { DbShoe } from '@/types/database';
 import {
   Popover,
   PopoverContent,
@@ -20,10 +23,36 @@ const RecentlyViewedDropdown = ({
   onRemoveItem,
   onClearAll
 }: RecentlyViewedDropdownProps) => {
-  const recentShoes = recentlyViewedIds
-    .slice(0, 4)
-    .map(id => mockShoes.find(shoe => shoe.id === id))
-    .filter(Boolean);
+  const { data: recentShoes = [] } = useQuery({
+    queryKey: ['recently-viewed-dropdown', recentlyViewedIds],
+    queryFn: async () => {
+      if (recentlyViewedIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('shoes')
+        .select('*')
+        .in('id', recentlyViewedIds);
+
+      if (error) throw error;
+
+      const shoes = (data as DbShoe[]).map(shoe => ({
+        id: shoe.id,
+        name: shoe.name,
+        brand: shoe.brand,
+        price: shoe.price,
+        image: shoe.image_url || '',
+        sizes: shoe.sizes,
+        status: shoe.status,
+        createdAt: new Date(shoe.created_at)
+      })) as Shoe[];
+
+      return recentlyViewedIds
+        .slice(0, 4)
+        .map(id => shoes.find(s => s.id === id))
+        .filter((s): s is Shoe => s !== undefined);
+    },
+    enabled: recentlyViewedIds.length > 0,
+  });
 
   if (recentShoes.length === 0) {
     return null;
@@ -49,7 +78,7 @@ const RecentlyViewedDropdown = ({
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button className="relative p-2 hover:bg-accent/10 rounded-lg transition-colors group flex items-center gap-1.5">
+        <button className="relative p-2 hover:text-accent rounded-lg transition-colors group flex items-center gap-1.5">
           <History className="w-5 h-5" />
           <span className="text-xs font-bold tracking-wide hidden sm:inline">RECENT</span>
           <span className="absolute -top-1 -right-1 bg-accent text-background text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">

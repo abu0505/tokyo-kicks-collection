@@ -50,7 +50,7 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
             <Button
               size="lg"
               variant="outline"
-              className="border-2 border-accent bg-accent/10 text-accent hover:bg-accent hover:text-accent-foreground px-8 py-6 text-lg font-bold"
+              className="border-2 border-accent bg-foreground text-accent hover:bg-accent hover:text-accent-foreground px-8 py-6 text-lg font-bold"
             >
               NEW ARRIVALS
             </Button>

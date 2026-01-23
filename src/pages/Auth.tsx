@@ -4,25 +4,32 @@ import { motion } from 'framer-motion';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Mail, Lock, Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, ArrowLeft, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
-const authSchema = z.object({
+const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
+  fullName: z.string().optional(),
 });
 
-type AuthFormData = z.infer<typeof authSchema>;
+const signupSchema = z.object({
+  email: z.string().email('Please enter a valid email'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  fullName: z.string().min(2, 'Name must be at least 2 characters'),
+});
+
+type AuthFormData = z.infer<typeof signupSchema>;
 
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { signIn, signUp, signInWithGoogle, isLoading: authLoading } = useAuth();
-  
+
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -35,14 +42,14 @@ const Auth = () => {
     formState: { errors },
     reset,
   } = useForm<AuthFormData>({
-    resolver: zodResolver(authSchema),
+    resolver: zodResolver(isLogin ? loginSchema : signupSchema),
   });
 
   const onSubmit = async (data: AuthFormData) => {
     setIsSubmitting(true);
     try {
       if (isLogin) {
-        const { error } = await signIn(data.email, data.password);
+        const { data: authData, error } = await signIn(data.email, data.password);
         if (error) {
           if (error.message.includes('Invalid login credentials')) {
             toast.error('Invalid email or password');
@@ -51,10 +58,11 @@ const Auth = () => {
           }
           return;
         }
-        toast.success('Welcome back!');
+        const fullName = authData.user?.user_metadata?.full_name;
+        toast.success(fullName ? `Welcome back, ${fullName}!` : 'Welcome back!');
         navigate(from, { replace: true });
       } else {
-        const { error } = await signUp(data.email, data.password);
+        const { error } = await signUp(data.email, data.password, data.fullName || '');
         if (error) {
           if (error.message.includes('User already registered')) {
             toast.error('An account with this email already exists');
@@ -113,6 +121,28 @@ const Auth = () => {
         {/* Auth Card */}
         <div className="bg-card border-2 border-foreground p-8">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+            {/* Full Name - Only show for signup */}
+            {!isLogin && (
+              <div className="space-y-2">
+                <Label htmlFor="fullName" className="font-bold text-sm tracking-wide">
+                  FULL NAME
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                  <Input
+                    id="fullName"
+                    type="text"
+                    placeholder="Your full name"
+                    className="pl-10 h-12 border-2 border-foreground focus:border-accent"
+                    {...register('fullName')}
+                  />
+                </div>
+                {errors.fullName && (
+                  <p className="text-sm text-destructive font-medium">{errors.fullName.message}</p>
+                )}
+              </div>
+            )}
+
             {/* Email */}
             <div className="space-y-2">
               <Label htmlFor="email" className="font-bold text-sm tracking-wide">

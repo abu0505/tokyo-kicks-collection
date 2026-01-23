@@ -1,7 +1,7 @@
 import { ReactNode, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Package, LogOut } from 'lucide-react';
+import { LayoutDashboard, Package, LogOut, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -53,19 +53,18 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   return (
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
-      <aside className="w-64 bg-foreground text-background flex flex-col">
+      <aside className="w-64 bg-background border-r border-border text-foreground flex flex-col">
         {/* Logo */}
-        <div className="p-6 border-b border-background/20">
+        <div className="p-6 border-b border-border">
           <Link to="/" className="flex items-center gap-2">
             <span className="text-2xl font-black tracking-tighter">TOKYO</span>
             <span className="text-accent text-2xl font-black">.</span>
-            <span className="text-sm font-bold text-background/60">Style</span>
           </Link>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4">
-          <p className="text-xs font-bold text-background/50 mb-4 tracking-widest">
+          <p className="text-xs font-bold text-muted-foreground mb-4 tracking-widest">
             ADMIN PANEL
           </p>
           <ul className="space-y-2">
@@ -77,8 +76,8 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
                   <Link
                     to={item.path}
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${isActive
-                        ? 'bg-accent text-foreground'
-                        : 'hover:bg-background/10'
+                      ? 'bg-accent text-accent-foreground'
+                      : 'hover:bg-accent/10'
                       }`}
                   >
                     <item.icon className="h-5 w-5" />
@@ -91,13 +90,22 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
         </nav>
 
         {/* User Info */}
-        <div className="p-4 border-t border-background/20">
-          <p className="text-xs text-background/50 mb-1">Shop Owner</p>
+        <div className="p-4 border-t border-border">
+          <p className="text-xs text-muted-foreground mb-1">Shop Owner</p>
           <p className="font-bold truncate mb-4">{user?.email}</p>
+          <Link to="/">
+            <Button
+              variant="ghost"
+              className="w-full justify-start gap-2 text-foreground hover:bg-accent/10 hover:text-foreground mb-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Website
+            </Button>
+          </Link>
           <Button
             variant="ghost"
             onClick={handleLogout}
-            className="w-full justify-start gap-2 text-background hover:bg-background/10 hover:text-background"
+            className="w-full justify-start gap-2 text-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors"
           >
             <LogOut className="h-4 w-4" />
             Logout

@@ -8,6 +8,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/format';
 import { DbShoe } from '@/types/database';
+import StarRating from '@/components/StarRating';
 
 interface QuickViewModalProps {
   shoe: DbShoe | null;
@@ -15,6 +16,8 @@ interface QuickViewModalProps {
   onClose: () => void;
   onWishlistClick?: (shoe: DbShoe) => void;
   isInWishlist?: boolean;
+  rating?: number;
+  totalReviews?: number;
 }
 
 const QuickViewModal = ({
@@ -22,7 +25,9 @@ const QuickViewModal = ({
   open,
   onClose,
   onWishlistClick,
-  isInWishlist = false
+  isInWishlist = false,
+  rating,
+  totalReviews
 }: QuickViewModalProps) => {
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
 
@@ -33,7 +38,7 @@ const QuickViewModal = ({
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl border-0 p-0 overflow-hidden bg-white text-gray-900 [&>button]:hidden">
-        <div className="grid md:grid-cols-2 min-h-[450px]">
+        <div className="grid md:grid-cols-2 min-h-[400px]">
           {/* Image - Full height and width */}
           <div className="relative bg-gray-100 flex items-center justify-center">
             <img
@@ -44,8 +49,8 @@ const QuickViewModal = ({
           </div>
 
           {/* Info */}
-          <div className="p-6 flex flex-col relative">
-            {/* Close Button - Only one, top right of info section */}
+          <div className="p-6 flex flex-col relative h-full">
+            {/* Close Button */}
             <button
               onClick={onClose}
               className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-200 hover:bg-gray-300 transition-colors flex items-center justify-center z-10"
@@ -53,20 +58,20 @@ const QuickViewModal = ({
               <X className="h-4 w-4 text-gray-700" />
             </button>
 
-            {/* Brand */}
-            <p className="text-sm text-emerald-600 font-bold tracking-widest mb-2">
-              {shoe.brand.toUpperCase()}
-            </p>
+            {/* Brand & Rating */}
+            <div className="flex items-center justify-between mb-2 pr-10">
+              <p className="text-sm text-emerald-600 font-bold tracking-widest">
+                {shoe.brand.toUpperCase()}
+              </p>
+              {totalReviews && totalReviews > 0 && (
+                <StarRating rating={rating || 0} totalReviews={totalReviews} size="md" />
+              )}
+            </div>
 
             {/* Name */}
-            <h2 className="text-2xl font-black leading-tight mb-4 text-gray-900 pr-10">
+            <h2 className="text-[2.5rem] font-black leading-tight mb-6 text-gray-900 pr-10">
               {shoe.name}
             </h2>
-
-            {/* Price */}
-            <p className="text-3xl font-black mb-6 text-gray-900">
-              {formatPrice(shoe.price)}
-            </p>
 
             {/* Size Selection */}
             <div className="mb-6">
@@ -78,8 +83,8 @@ const QuickViewModal = ({
                     onClick={() => !isSoldOut && setSelectedSize(size)}
                     disabled={isSoldOut}
                     className={`w-12 h-10 border text-sm font-bold transition-all rounded ${selectedSize === size
-                        ? 'border-gray-900 bg-gray-900 text-white'
-                        : 'border-gray-300 text-gray-700 hover:border-gray-500'
+                      ? 'border-gray-900 bg-gray-900 text-white'
+                      : 'border-gray-300 text-gray-700 hover:border-gray-500'
                       } ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     {size}
@@ -88,12 +93,21 @@ const QuickViewModal = ({
               </div>
             </div>
 
-            {/* Status */}
-            <div className="mb-6">
-              <span className={`text-sm font-bold flex items-center gap-2 ${isSoldOut ? 'text-red-500' : 'text-emerald-600'}`}>
-                <span className={`w-2 h-2 rounded-full ${isSoldOut ? 'bg-red-500' : 'bg-emerald-500'}`}></span>
-                {isSoldOut ? 'Sold Out' : 'In Stock'}
-              </span>
+            {/* Price & Stock */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200 mb-6">
+              <p className="text-3xl font-black text-gray-900">
+                {formatPrice(shoe.price)}
+              </p>
+              {isSoldOut ? (
+                <span className="text-sm font-bold text-red-600">
+                  Out of Stock
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 text-sm font-bold text-emerald-600">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  In Stock
+                </span>
+              )}
             </div>
 
             {/* Actions */}
@@ -115,8 +129,8 @@ const QuickViewModal = ({
                   onClick={() => onWishlistClick(shoe)}
                   disabled={isSoldOut}
                   className={`h-12 w-12 rounded-lg border-2 ${isInWishlist
-                      ? 'border-red-500 bg-red-50 text-red-500 hover:bg-red-100'
-                      : 'border-gray-300 text-gray-700 hover:border-gray-500 hover:bg-gray-100'
+                    ? 'border-red-500 bg-red-50 text-red-500 hover:bg-red-100'
+                    : 'border-gray-300 text-gray-700 hover:border-gray-500 hover:bg-gray-100'
                     }`}
                 >
                   <Heart className={`h-5 w-5 ${isInWishlist ? 'fill-current' : ''}`} />

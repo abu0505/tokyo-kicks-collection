@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -67,28 +67,31 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
     },
   });
 
-  // Reset form when shoe changes
-  useState(() => {
-    if (shoe) {
-      reset({
-        name: shoe.name,
-        brand: shoe.brand,
-        price: shoe.price,
-        status: shoe.status,
-        sizes: shoe.sizes.join(','),
-      });
-      setImagePreview(shoe.image_url);
-    } else {
-      reset({
-        name: '',
-        brand: '',
-        price: 0,
-        status: 'in_stock',
-        sizes: '',
-      });
-      setImagePreview(null);
+  // Reset form when shoe changes or modal opens
+  useEffect(() => {
+    if (open) {
+      if (shoe) {
+        reset({
+          name: shoe.name,
+          brand: shoe.brand,
+          price: shoe.price,
+          status: shoe.status,
+          sizes: shoe.sizes.join(','),
+        });
+        setImagePreview(shoe.image_url);
+      } else {
+        reset({
+          name: '',
+          brand: '',
+          price: 0,
+          status: 'in_stock',
+          sizes: '',
+        });
+        setImagePreview(null);
+        setImageFile(null);
+      }
     }
-  });
+  }, [shoe, open, reset]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -126,9 +129,9 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
   const saveMutation = useMutation({
     mutationFn: async (data: ShoeFormData) => {
       setIsUploading(true);
-      
+
       let imageUrl = shoe?.image_url || null;
-      
+
       if (imageFile) {
         const uploadedUrl = await uploadImage(imageFile);
         if (uploadedUrl) {
@@ -155,13 +158,13 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
           .from('shoes')
           .update(shoeData)
           .eq('id', shoe.id);
-        
+
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('shoes')
           .insert([shoeData]);
-        
+
         if (error) throw error;
       }
     },
@@ -352,8 +355,8 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
               {saveMutation.isPending || isUploading
                 ? 'Saving...'
                 : isEditing
-                ? 'Update Shoe'
-                : 'Add Shoe'}
+                  ? 'Update Shoe'
+                  : 'Add Shoe'}
             </Button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import StarRating from './StarRating';
@@ -29,46 +29,67 @@ const ReviewList = ({ shoeId, refreshTrigger }: ReviewListProps) => {
   const [isLoading, setIsLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
+
+      // 1. Fetch reviews first (without join)
+      const { data: reviewsData, error: reviewsError } = await supabase
         .from('reviews')
-        .select(`
-          id,
-          rating,
-          comment,
-          created_at,
-          user_id,
-          profiles:user_id (username)
-        `)
+        .select('*')
         .eq('shoe_id', shoeId)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching reviews:', error);
+      if (reviewsError) {
+        console.error('Error fetching reviews:', reviewsError);
         setReviews([]);
-      } else {
-        // Transform the data to handle the profiles join
-        const transformedData = (data || []).map(review => ({
-          ...review,
-          profiles: Array.isArray(review.profiles) 
-            ? review.profiles[0] 
-            : review.profiles
-        }));
-        setReviews(transformedData);
+        return;
       }
+
+      if (!reviewsData || reviewsData.length === 0) {
+        setReviews([]);
+        setIsLoading(false);
+        return;
+      }
+
+      // 2. Fetch profiles for these reviews
+      const userIds = Array.from(new Set(reviewsData.map(r => r.user_id)));
+
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .in('id', userIds);
+
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
+        // We can still show reviews even if profile fetch fails
+      }
+
+      // 3. Combine data manually
+      const profilesMap = new Map();
+      if (profilesData) {
+        profilesData.forEach(p => {
+          profilesMap.set(p.id, p);
+        });
+      }
+
+      const combinedReviews = reviewsData.map(review => ({
+        ...review,
+        profiles: profilesMap.get(review.user_id) || { username: 'Anonymous' }
+      }));
+
+      setReviews(combinedReviews);
     } catch (err) {
-      console.error('Error fetching reviews:', err);
+      console.error('Error in fetchReviews:', err);
       setReviews([]);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [shoeId]);
 
   useEffect(() => {
     fetchReviews();
-  }, [shoeId, refreshTrigger]);
+  }, [fetchReviews, refreshTrigger]);
 
   const handleDelete = async (reviewId: string) => {
     if (!user) return;
@@ -82,7 +103,7 @@ const ReviewList = ({ shoeId, refreshTrigger }: ReviewListProps) => {
         .eq('user_id', user.id);
 
       if (error) throw error;
-      
+
       setReviews(prev => prev.filter(r => r.id !== reviewId));
       toast.success('Review deleted');
     } catch (err) {

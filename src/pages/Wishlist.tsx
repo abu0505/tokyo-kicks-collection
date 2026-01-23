@@ -1,22 +1,48 @@
 import { useState, useEffect } from 'react';
-import { mockShoes, Shoe } from '@/types/shoe';
+import { useQuery } from '@tanstack/react-query';
+import { Shoe } from '@/types/shoe';
 import { formatPrice } from '@/lib/format';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
-import { Link } from 'react-router-dom';
-import { Heart, Calendar, User, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Heart, Calendar, User, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { supabase } from '@/integrations/supabase/client';
+import { DbShoe } from '@/types/database';
 
 const Wishlist = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { wishlistIds, removeFromWishlist } = useWishlist();
 
-  const wishlistShoes = wishlistIds
-    .map(id => mockShoes.find(shoe => shoe.id === id))
-    .filter(Boolean) as Shoe[];
+  const { data: wishlistShoes = [], isLoading } = useQuery({
+    queryKey: ['wishlist-shoes', wishlistIds],
+    queryFn: async () => {
+      if (wishlistIds.length === 0) return [];
+
+      const { data, error } = await supabase
+        .from('shoes')
+        .select('*')
+        .in('id', wishlistIds);
+
+      if (error) throw error;
+
+      return (data as DbShoe[]).map(shoe => ({
+        id: shoe.id,
+        name: shoe.name,
+        brand: shoe.brand,
+        price: shoe.price,
+        image: shoe.image_url || '',
+        sizes: shoe.sizes,
+        status: shoe.status,
+        createdAt: new Date(shoe.created_at)
+      })) as Shoe[];
+    },
+    enabled: wishlistIds.length > 0,
+  });
 
   const handleRemoveFromWishlist = (shoe: Shoe) => {
     removeFromWishlist(shoe.id, shoe.name);
@@ -122,7 +148,10 @@ const Wishlist = () => {
                   transition={{ delay: index * 0.05 }}
                   className="relative group"
                 >
-                  <div className="bg-secondary/30 border border-foreground/10 rounded-xl overflow-hidden">
+                  <div
+                    onClick={() => navigate(`/product/${shoe.id}`)}
+                    className="bg-secondary/30 border border-foreground/10 rounded-xl overflow-hidden cursor-pointer h-full"
+                  >
                     {/* Time Badge */}
                     <div className="absolute top-3 left-3 z-10">
                       <span className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded">
@@ -132,22 +161,23 @@ const Wishlist = () => {
 
                     {/* Remove Button */}
                     <button
-                      onClick={() => handleRemoveFromWishlist(shoe)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFromWishlist(shoe);
+                      }}
                       className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-background/80 hover:bg-destructive hover:text-destructive-foreground flex items-center justify-center transition-colors"
                     >
                       <X className="w-4 h-4" />
                     </button>
 
                     {/* Image */}
-                    <Link to={`/product/${shoe.id}`}>
-                      <div className="aspect-square bg-gradient-to-br from-secondary to-secondary/50 p-4 flex items-center justify-center">
-                        <img
-                          src={shoe.image}
-                          alt={shoe.name}
-                          className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                    </Link>
+                    <div className="aspect-square bg-gradient-to-br from-secondary to-secondary/50 flex items-center justify-center">
+                      <img
+                        src={shoe.image}
+                        alt={shoe.name}
+                        className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
 
                     {/* Info */}
                     <div className="p-4">

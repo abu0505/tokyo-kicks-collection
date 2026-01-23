@@ -84,35 +84,7 @@ export type Database = {
           added_at?: string
         }
       }
-      order_inquiries: {
-        Row: {
-          id: string
-          name: string
-          phone: string
-          shoe_id: string | null
-          size: number | null
-          message: string | null
-          created_at: string
-        }
-        Insert: {
-          id?: string
-          name: string
-          phone: string
-          shoe_id?: string | null
-          size?: number | null
-          message?: string | null
-          created_at?: string
-        }
-        Update: {
-          id?: string
-          name?: string
-          phone?: string
-          shoe_id?: string | null
-          size?: number | null
-          message?: string | null
-          created_at?: string
-        }
-      }
+
       user_roles: {
         Row: {
           id: string
@@ -160,5 +132,5 @@ export type UpdateTables<T extends keyof Database['public']['Tables']> = Databas
 export type DbShoe = Tables<'shoes'>
 export type DbProfile = Tables<'profiles'>
 export type DbWishlist = Tables<'wishlists'>
-export type DbOrderInquiry = Tables<'order_inquiries'>
+
 export type DbUserRole = Tables<'user_roles'>

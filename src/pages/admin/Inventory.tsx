@@ -49,7 +49,7 @@ const Inventory = () => {
         .from('shoes')
         .select('*')
         .order('created_at', { ascending: false });
-      
+
       if (error) throw error;
       return data as DbShoe[];
     },
@@ -62,7 +62,7 @@ const Inventory = () => {
         .from('shoes')
         .update({ status })
         .eq('id', id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -81,7 +81,7 @@ const Inventory = () => {
         .from('shoes')
         .delete()
         .eq('id', id);
-      
+
       if (error) throw error;
     },
     onSuccess: () => {
@@ -120,7 +120,7 @@ const Inventory = () => {
         </div>
 
         {/* Table */}
-        <div className="border-2 border-foreground bg-card">
+        <div className="bg-card">
           <Table>
             <TableHeader>
               <TableRow className="border-b-2 border-foreground hover:bg-transparent">
@@ -225,7 +225,7 @@ const Inventory = () => {
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
+                            className="text-destructive focus:text-accent-foreground"
                             onClick={() => setDeleteConfirmId(shoe.id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />

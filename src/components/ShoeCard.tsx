@@ -4,15 +4,18 @@ import { Shoe, isNewArrival } from '@/types/shoe';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatPrice } from '@/lib/format';
+import StarRating from '@/components/StarRating';
 
 interface ShoeCardProps {
   shoe: Shoe;
   onWishlistClick: (shoe: Shoe) => void;
   isInWishlist?: boolean;
   onQuickView?: (shoe: Shoe) => void;
+  rating?: number;
+  totalReviews?: number;
 }
 
-const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView }: ShoeCardProps) => {
+const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView, rating, totalReviews }: ShoeCardProps) => {
   const navigate = useNavigate();
   const isNew = isNewArrival(shoe);
   const isSoldOut = shoe.status === 'sold_out';
@@ -40,15 +43,11 @@ const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView }: 
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
           {isNew && (
-            <Badge className="bg-accent text-accent-foreground font-bold px-3 py-1 text-xs">
+            <Badge className="bg-red-600 hover:bg-red-600 text-white font-bold px-3 py-1 text-xs justify-center">
               NEW
             </Badge>
           )}
-          {isSoldOut && (
-            <Badge variant="secondary" className="bg-foreground text-background font-bold px-3 py-1 text-xs">
-              SOLD OUT
-            </Badge>
-          )}
+
         </div>
 
         {/* Action Buttons */}
@@ -83,13 +82,18 @@ const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView }: 
 
       {/* Info */}
       <div className="p-5">
-        {/* Brand */}
-        <p className="text-sm text-muted-foreground font-bold tracking-wide mb-1">
-          {shoe.brand.toUpperCase()}
-        </p>
+        {/* Brand & Rating */}
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-sm text-muted-foreground font-bold tracking-wide">
+            {shoe.brand.toUpperCase()}
+          </p>
+          {totalReviews && totalReviews > 0 && (
+            <StarRating rating={rating || 0} totalReviews={totalReviews} size="sm" />
+          )}
+        </div>
 
         {/* Name */}
-        <h3 className="text-lg font-bold mb-3 leading-tight line-clamp-2">
+        <h3 className="text-2xl font-bold mb-2 leading-tight line-clamp-2">
           {shoe.name}
         </h3>
 
@@ -111,13 +115,20 @@ const ShoeCard = ({ shoe, onWishlistClick, isInWishlist = false, onQuickView }: 
         </div>
 
         {/* Price */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between pt-4 border-t border-border bg-white">
           <p className="text-2xl font-black">
             {formatPrice(shoe.price)}
           </p>
-          <span className="text-xs text-muted-foreground font-medium opacity-0 group-hover:opacity-100 transition-opacity">
-            View Details →
-          </span>
+          {isSoldOut ? (
+            <span className="text-sm font-bold text-red-600">
+              Out of Stock
+            </span>
+          ) : (
+            <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
+              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+              In Stock
+            </span>
+          )}
         </div>
       </div>
     </div>
