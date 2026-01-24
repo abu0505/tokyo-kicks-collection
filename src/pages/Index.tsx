@@ -12,6 +12,8 @@ import { useWishlist } from '@/contexts/WishlistContext';
 import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
 
+import PullToRefresh from '@/components/PullToRefresh';
+
 const Index = () => {
   const catalogRef = useRef<HTMLDivElement>(null);
 
@@ -22,7 +24,7 @@ const Index = () => {
   const [sortOption, setSortOption] = useState<SortOption>('newest');
 
   // Fetch shoes from Supabase
-  const { data: shoes = [] } = useQuery({
+  const { data: shoes = [], refetch } = useQuery({
     queryKey: ['catalog-shoes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -160,45 +162,49 @@ const Index = () => {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
     >
-      <Header />
-      <HeroSection onBrowseClick={scrollToCatalog} />
+      <PullToRefresh onRefresh={async () => { await refetch() }}>
+        <div>
+          <Header />
+          <HeroSection onBrowseClick={scrollToCatalog} />
 
-      <motion.div
-        ref={catalogRef}
-        id="catalog"
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5 }}
-      >
-        <FilterBar
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedBrands={selectedBrands}
-          onBrandToggle={handleBrandToggle}
-          availableBrands={availableBrands}
-          selectedSizes={selectedSizes}
-          onSizeToggle={handleSizeToggle}
-          availableSizes={availableSizes}
-          priceRange={priceRange}
-          onPriceChange={setPriceRange}
-          minPrice={minPrice}
-          maxPrice={maxPrice}
-          onClearFilters={handleClearFilters}
-          hasActiveFilters={hasActiveFilters}
-          sortOption={sortOption}
-          onSortChange={setSortOption}
-        />
+          <motion.div
+            ref={catalogRef}
+            id="catalog"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+          >
+            <FilterBar
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+              selectedBrands={selectedBrands}
+              onBrandToggle={handleBrandToggle}
+              availableBrands={availableBrands}
+              selectedSizes={selectedSizes}
+              onSizeToggle={handleSizeToggle}
+              availableSizes={availableSizes}
+              priceRange={priceRange}
+              onPriceChange={setPriceRange}
+              minPrice={minPrice}
+              maxPrice={maxPrice}
+              onClearFilters={handleClearFilters}
+              hasActiveFilters={hasActiveFilters}
+              sortOption={sortOption}
+              onSortChange={setSortOption}
+            />
 
-        <ShoeCatalog
-          shoes={filteredShoes}
-          onWishlistClick={handleWishlistClick}
-          wishlistIds={wishlistIds}
-        />
-      </motion.div>
+            <ShoeCatalog
+              shoes={filteredShoes}
+              onWishlistClick={handleWishlistClick}
+              wishlistIds={wishlistIds}
+            />
+          </motion.div>
 
-      <Footer />
-      <BackToTopButton />
+          <Footer />
+          <BackToTopButton />
+        </div>
+      </PullToRefresh>
     </motion.div>
   );
 };

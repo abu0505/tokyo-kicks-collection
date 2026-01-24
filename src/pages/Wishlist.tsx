@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Shoe } from '@/types/shoe';
 import Header from '@/components/Header';
@@ -23,6 +23,10 @@ const Wishlist = () => {
   const { wishlistIds, removeFromWishlist } = useWishlist();
   const [quickViewShoe, setQuickViewShoe] = useState<DbShoe | null>(null);
   const isMobile = useIsMobile();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const { data: wishlistShoes = [], isLoading } = useQuery({
     queryKey: ['wishlist-shoes', wishlistIds],
@@ -97,42 +101,42 @@ const Wishlist = () => {
       <main className="container py-8 md:py-12 px-4">
         {/* Page Header */}
         <div className="mb-8 md:mb-12">
-          <h1 className="text-3xl md:text-5xl font-black italic mb-1 md:mb-2">My Collection</h1>
+          <h1 className="text-3xl md:text-5xl font-black mb-1 md:mb-2">My Collection</h1>
           <p className="text-sm md:text-base text-muted-foreground">Your saved shoes</p>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-8 md:mb-12">
+        <div className="grid grid-cols-3 gap-3 md:gap-4 mb-8 md:mb-12">
           {/* Saved Shoes Count */}
-          <div className="bg-secondary/50 border border-foreground/10 rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-destructive/20 flex items-center justify-center">
+          <div className="bg-secondary/50 border border-foreground/10 rounded-xl p-3 md:p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 text-center sm:text-left">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-destructive/20 flex items-center justify-center shrink-0">
               <Heart className="w-5 h-5 md:w-6 md:h-6 text-destructive fill-destructive" />
             </div>
             <div>
               <p className="text-xl md:text-2xl font-bold">{wishlistShoes.length}</p>
-              <p className="text-xs md:text-sm text-muted-foreground">Saved Shoes</p>
+              <p className="text-xs md:text-sm text-muted-foreground leading-tight">Saved Shoes</p>
             </div>
           </div>
 
           {/* User Info */}
-          <div className="bg-secondary/50 border border-foreground/10 rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-green-500/20 flex items-center justify-center">
+          <div className="bg-secondary/50 border border-foreground/10 rounded-xl p-3 md:p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 text-center sm:text-left">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-green-500/20 flex items-center justify-center shrink-0">
               <User className="w-5 h-5 md:w-6 md:h-6 text-green-500" />
             </div>
-            <div>
-              <p className="text-base md:text-lg font-bold truncate max-w-[120px] md:max-w-none">{user?.email?.split('@')[0] || 'Guest'}</p>
-              <p className="text-xs md:text-sm text-muted-foreground">Member</p>
+            <div className="min-w-0">
+              <p className="text-base md:text-lg font-bold truncate max-w-full sm:max-w-[120px] md:max-w-none">{user?.email?.split('@')[0] || 'Guest'}</p>
+              <p className="text-xs md:text-sm text-muted-foreground leading-tight">Member</p>
             </div>
           </div>
 
           {/* Join Date */}
-          <div className="bg-secondary/50 border border-foreground/10 rounded-xl p-3 md:p-4 flex items-center gap-3 md:gap-4">
-            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
+          <div className="bg-secondary/50 border border-foreground/10 rounded-xl p-3 md:p-4 flex flex-col sm:flex-row items-center justify-center sm:justify-start gap-2 sm:gap-4 text-center sm:text-left">
+            <div className="w-10 h-10 md:w-12 md:h-12 rounded-lg bg-blue-500/20 flex items-center justify-center shrink-0">
               <Calendar className="w-5 h-5 md:w-6 md:h-6 text-blue-500" />
             </div>
             <div>
               <p className="text-base md:text-lg font-bold">{formattedDate}</p>
-              <p className="text-xs md:text-sm text-muted-foreground">Joined</p>
+              <p className="text-xs md:text-sm text-muted-foreground leading-tight">Joined</p>
             </div>
           </div>
         </div>
@@ -168,8 +172,8 @@ const Wishlist = () => {
             </Link>
           </div>
         ) : (
-          <div className={isMobile 
-            ? "flex flex-col gap-3" 
+          <div className={isMobile
+            ? "flex flex-col gap-3"
             : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           }>
             <AnimatePresence>

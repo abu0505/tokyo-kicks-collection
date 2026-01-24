@@ -1,5 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, Heart, Settings, Menu, X } from 'lucide-react';
+import { User, LogOut, Heart, Settings, Menu, X, Footprints, MessageCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useAuth } from '@/hooks/useAuth';
@@ -61,14 +61,16 @@ const Header = () => {
             <a
               href="#catalog"
               onClick={scrollToCatalog}
-              className="text-sm font-bold tracking-wide hover:text-accent transition-colors"
+              className="group flex items-center gap-1.5 text-sm font-bold tracking-wide hover:text-accent transition-colors"
             >
+              <Footprints className="w-4 h-4" />
               CATALOG
             </a>
             <Link
               to="/contact"
-              className="text-sm font-bold tracking-wide hover:text-accent transition-colors"
+              className="group flex items-center gap-1.5 text-sm font-bold tracking-wide hover:text-accent transition-colors"
             >
+              <MessageCircle className="w-4 h-4" />
               CONTACT US
             </Link>
           </nav>
@@ -180,20 +182,22 @@ const Header = () => {
               <SheetHeader className="border-b border-foreground/10 pb-4 mb-4">
                 <SheetTitle className="text-left font-black">MENU</SheetTitle>
               </SheetHeader>
-              
+
               <nav className="flex flex-col gap-4">
                 <a
                   href="#catalog"
                   onClick={scrollToCatalog}
-                  className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
+                  className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
                 >
+                  <Footprints className="w-5 h-5" />
                   CATALOG
                 </a>
                 <Link
                   to="/contact"
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
+                  className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
                 >
+                  <MessageCircle className="w-5 h-5" />
                   CONTACT US
                 </Link>
                 <Link

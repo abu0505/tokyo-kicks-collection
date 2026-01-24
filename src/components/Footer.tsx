@@ -2,15 +2,15 @@ import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
-    <footer className="bg-primary text-primary-foreground py-10 md:py-14">
+    <footer className="bg-primary text-primary-foreground py-10 md:py-14" data-testid="main-footer">
       <div className="container px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12">
           {/* Brand */}
-          <div className="md:col-span-2 text-center md:text-left">
+          <div className="md:col-span-2 text-left">
             <Link to="/" className="inline-block mb-4">
-              <img src="/logo.png" alt="Tokyo Shoes" className="h-12 md:h-16 w-auto brightness-0 invert mx-auto md:mx-0" />
+              <img src="/logo.png" alt="Tokyo Shoes" className="h-12 md:h-16 w-auto brightness-0 invert" />
             </Link>
-            <p className="text-primary-foreground/60 max-w-md mb-4 md:mb-6 text-sm md:text-base mx-auto md:mx-0">
+            <p className="text-primary-foreground/60 max-w-md mb-4 md:mb-6 text-sm md:text-base">
               Curated selection of authentic sneakers. From iconic classics to limited edition drops.
             </p>
             <p className="text-xs md:text-sm text-primary-foreground/40">
@@ -19,7 +19,7 @@ const Footer = () => {
           </div>
 
           {/* Quick Links */}
-          <div className="text-center md:text-left">
+          <div className="text-left">
             <h3 className="text-xs md:text-sm font-bold tracking-wide mb-3 md:mb-4 text-accent">QUICK LINKS</h3>
             <ul className="space-y-2 md:space-y-3">
               <li>
@@ -46,7 +46,7 @@ const Footer = () => {
           </div>
 
           {/* Support */}
-          <div className="text-center md:text-left">
+          <div className="text-left">
             <h3 className="text-xs md:text-sm font-bold tracking-wide mb-3 md:mb-4 text-accent">SUPPORT</h3>
             <ul className="space-y-2 md:space-y-3">
               <li>

@@ -38,7 +38,7 @@ const ShoeCard = ({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative bg-card border-2 border-foreground overflow-hidden transition-all cursor-pointer hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 h-full flex flex-col ${isSoldOut ? 'opacity-60' : ''
+      className={`group relative bg-secondary/30 border-2 border-foreground overflow-hidden transition-all cursor-pointer hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 h-full flex flex-col ${isSoldOut ? 'opacity-60' : ''
         }`}
     >
       {/* Image Container */}
@@ -60,22 +60,25 @@ const ShoeCard = ({
         </div>
 
         {/* Action Buttons */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2">
+        <div className="absolute top-2 right-2 md:top-4 md:right-4 flex flex-col gap-2">
           {/* Wishlist Button */}
           <Button
             size="icon"
             variant="secondary"
-            onClick={() => onWishlistClick(shoe)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onWishlistClick(shoe);
+            }}
             disabled={isSoldOut && !showRemoveButton}
-            className={`w-12 h-12 rounded-full border-2 border-foreground transition-all ${isInWishlist
+            className={`w-8 h-8 md:w-12 md:h-12 rounded-full border-2 border-foreground transition-all ${isInWishlist
               ? 'bg-accent text-accent-foreground hover:bg-accent/90'
               : 'bg-background hover:bg-accent hover:text-accent-foreground'
               }`}
           >
             {showRemoveButton ? (
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 md:h-5 md:w-5" />
             ) : (
-              <Heart className={`h-5 w-5 ${isInWishlist ? 'fill-current' : ''}`} />
+              <Heart className={`h-4 w-4 md:h-5 md:w-5 ${isInWishlist ? 'fill-current' : ''}`} />
             )}
           </Button>
 
@@ -84,8 +87,11 @@ const ShoeCard = ({
             <Button
               size="icon"
               variant="secondary"
-              onClick={() => onQuickView(shoe)}
-              className="w-12 h-12 rounded-full border-2 border-foreground bg-background hover:bg-foreground hover:text-background transition-all opacity-0 group-hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                onQuickView(shoe);
+              }}
+              className="hidden md:flex w-12 h-12 rounded-full border-2 border-foreground bg-background hover:bg-foreground hover:text-background transition-all opacity-0 group-hover:opacity-100"
             >
               <Eye className="h-5 w-5" />
             </Button>
@@ -94,10 +100,10 @@ const ShoeCard = ({
       </div>
 
       {/* Info */}
-      <div className="p-5 flex flex-col flex-1">
+      <div className="p-3 md:p-5 flex flex-col flex-1">
         {/* Brand & Rating */}
         <div className="flex items-center justify-between mb-1">
-          <p className="text-sm text-muted-foreground font-bold tracking-wide">
+          <p className="text-[10px] md:text-sm text-muted-foreground font-bold tracking-wide">
             {shoe.brand.toUpperCase()}
           </p>
           {totalReviews && totalReviews > 0 && (
@@ -106,39 +112,39 @@ const ShoeCard = ({
         </div>
 
         {/* Name */}
-        <h3 className="text-2xl font-bold mb-2 leading-tight line-clamp-2">
+        <h3 className="text-sm md:text-2xl font-bold mb-2 leading-tight line-clamp-2">
           {shoe.name}
         </h3>
 
         {/* Sizes */}
-        <div className="flex flex-wrap gap-1 mb-4">
+        <div className="flex flex-wrap gap-1 mb-2 md:mb-4">
           {shoe.sizes.slice(0, 5).map((size) => (
             <span
               key={size}
-              className="text-xs bg-secondary px-2 py-1 font-medium"
+              className="text-[10px] md:text-xs bg-secondary px-1.5 py-0.5 md:px-2 md:py-1 font-medium"
             >
               {size}
             </span>
           ))}
           {shoe.sizes.length > 5 && (
-            <span className="text-xs bg-secondary px-2 py-1 font-medium">
+            <span className="text-[10px] md:text-xs bg-secondary px-1.5 py-0.5 md:px-2 md:py-1 font-medium">
               +{shoe.sizes.length - 5}
             </span>
           )}
         </div>
 
         {/* Price */}
-        <div className="flex items-center justify-between pt-4 border-t border-border bg-white mt-auto">
-          <p className="text-2xl font-black">
+        <div className="flex items-center justify-between pt-2 md:pt-4 border-t border-border bg-white mt-auto">
+          <p className="text-base md:text-2xl font-black">
             {formatPrice(shoe.price)}
           </p>
           {isSoldOut ? (
-            <span className="text-sm font-bold text-red-600">
+            <span className="text-xs md:text-sm font-bold text-red-600">
               Out of Stock
             </span>
           ) : (
-            <span className="flex items-center gap-1.5 text-sm font-medium text-green-600">
-              <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            <span className="flex items-center gap-1 md:gap-1.5 text-xs md:text-sm font-medium text-green-600">
+              <span className="w-1.5 h-1.5 md:w-2 md:h-2 rounded-full bg-green-500"></span>
               In Stock
             </span>
           )}

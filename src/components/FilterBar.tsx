@@ -66,36 +66,41 @@ const FilterBar = ({
       <div className="container px-4">
         {/* Mobile: Stacked layout, Desktop: Horizontal */}
         <div className="flex flex-col gap-4">
-          {/* Title Row */}
-          <div className="text-left">
-            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tighter">The Catalog</h1>
-            <p className="text-xs md:text-sm text-muted-foreground font-medium">Browse our curated collection</p>
-          </div>
+          {/* Top Row: Title and Search (Mobile: Row, Desktop: Row distributed) */}
+          <div className="flex flex-row items-center justify-between gap-3 md:gap-8">
+            {/* Title */}
+            <div className="text-left shrink-0">
+              <h1 className="text-xl md:text-3xl font-black uppercase tracking-tighter">The Catalog</h1>
+              <p className="hidden md:block text-sm text-muted-foreground font-medium">Browse our curated collection</p>
+            </div>
 
-          {/* Controls Row */}
-          <div className="flex flex-col gap-3">
-            {/* Search Bar - Full width on mobile */}
-            <div className="relative w-full">
+            {/* Search Bar - Flexible width */}
+            <div className="relative flex-1 md:max-w-[400px]">
               <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 h-4 md:h-5 w-4 md:w-5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Search brand or style..."
+                placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-10 md:pl-12 pr-10 py-5 md:py-6 text-base md:text-lg border-2 border-foreground bg-background focus-visible:ring-accent w-full"
+                className="pl-9 md:pl-12 pr-8 md:pr-10 py-2 md:py-6 h-10 md:h-auto text-sm md:text-lg border-2 border-foreground bg-background focus-visible:ring-accent w-full"
               />
               {searchQuery && (
                 <button
                   onClick={() => onSearchChange('')}
-                  className="absolute right-3 md:right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   <X className="h-4 md:h-5 w-4 md:w-5" />
                 </button>
               )}
             </div>
 
-            {/* Sort and Filter Row */}
-            <div className="flex gap-2 md:gap-4">
+            {/* Desktop: Sort & Filter moved here? No, let's keep previous structure but adapted */}
+          </div>
+
+          {/* Controls Row (Sort & Filter) */}
+          <div className="flex gap-2 md:gap-4 md:justify-end">
+            {/* Wraps sort/filter/clear */}
+            <div className="flex gap-2 w-full md:w-auto">
               {/* Sort Dropdown */}
               <Select value={sortOption} onValueChange={(val) => onSortChange(val as SortOption)}>
                 <SelectTrigger className="flex-1 md:w-[150px] border-2 border-foreground py-5 md:py-6 font-bold text-sm">

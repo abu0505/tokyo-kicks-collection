@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, MoreVertical, Pencil, Trash2, CheckCircle, XCircle } from 'lucide-react';
+import { Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Table,
   TableBody,
@@ -194,8 +195,8 @@ const Inventory = () => {
                         variant={shoe.status === 'in_stock' ? 'default' : 'secondary'}
                         className={
                           shoe.status === 'in_stock'
-                            ? 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10'
-                            : 'bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/10'
+                            ? 'bg-green-500/10 text-green-600 border-green-500/20 hover:bg-green-500/10 whitespace-nowrap'
+                            : 'bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/10 whitespace-nowrap'
                         }
                       >
                         {shoe.status === 'in_stock' ? 'In Stock' : 'Sold Out'}
@@ -229,18 +230,22 @@ const Inventory = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuItem onClick={() => handleToggleStatus(shoe)}>
-                            {shoe.status === 'in_stock' ? (
-                              <>
-                                <XCircle className="mr-2 h-4 w-4" />
-                                Mark as Sold Out
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="mr-2 h-4 w-4" />
-                                Mark as In Stock
-                              </>
-                            )}
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleToggleStatus(shoe);
+                            }}
+                            className="flex items-center gap-2 cursor-pointer group focus:bg-transparent focus:text-foreground"
+                          >
+                            <div className="pointer-events-none">
+                              <Switch
+                                checked={shoe.status === 'in_stock'}
+                                className="data-[state=checked]:bg-red-400"
+                              />
+                            </div>
+                            <span>
+                              {shoe.status === 'in_stock' ? 'Mark as Sold Out' : 'Mark as In Stock'}
+                            </span>
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => setEditingShoe(shoe)}>
                             <Pencil className="mr-2 h-4 w-4" />

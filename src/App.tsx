@@ -13,6 +13,7 @@ import Wishlist from "./pages/Wishlist";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
 
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -33,6 +34,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+
         </WishlistProvider>
       </BrowserRouter>
     </TooltipProvider>

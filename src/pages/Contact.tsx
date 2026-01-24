@@ -14,6 +14,9 @@ interface FAQItem {
     answer: string;
 }
 
+const RATE_LIMIT_KEY = 'tokyo_shoes_contact_limit';
+const RATE_LIMIT_DURATION = 60 * 1000; // 60 seconds
+
 const Contact = () => {
     const [formData, setFormData] = useState({
         name: '',
@@ -23,6 +26,7 @@ const Contact = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
+    const [honeypot, setHoneypot] = useState('');
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData(prev => ({
@@ -33,13 +37,35 @@ const Contact = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Honeypot check - if filled, it's likely a bot
+        if (honeypot) {
+            console.log('Spam detected');
+            return;
+        }
+
+        // Rate limiting check
+        const lastSubmission = localStorage.getItem(RATE_LIMIT_KEY);
+        if (lastSubmission) {
+            const timeSince = Date.now() - parseInt(lastSubmission, 10);
+            if (timeSince < RATE_LIMIT_DURATION) {
+                const remainingSeconds = Math.ceil((RATE_LIMIT_DURATION - timeSince) / 1000);
+                toast.error(`Please wait ${remainingSeconds} seconds before sending another message.`);
+                return;
+            }
+        }
+
         setIsSubmitting(true);
 
         // Simulate form submission
         await new Promise(resolve => setTimeout(resolve, 1000));
 
+        // Set rate limit
+        localStorage.setItem(RATE_LIMIT_KEY, Date.now().toString());
+
         toast.success('Message sent successfully! We\'ll get back to you soon.');
         setFormData({ name: '', email: '', subject: '', message: '' });
+        setHoneypot('');
         setIsSubmitting(false);
     };
 
@@ -118,7 +144,7 @@ const Contact = () => {
 
                 {/* Contact Info Cards */}
                 <motion.div
-                    className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
+                    className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
@@ -128,7 +154,7 @@ const Contact = () => {
                             key={info.title}
                             className="bg-secondary/50 border border-foreground/10 rounded-xl p-5 flex items-center gap-4 hover:border-accent/50 transition-colors"
                         >
-                            <div className={`w-12 h-12 rounded-lg ${info.color} flex items-center justify-center`}>
+                            <div className={`w-12 h-12 rounded-lg ${info.color} flex items-center justify-center shrink-0`}>
                                 <info.icon className="w-6 h-6" />
                             </div>
                             <div>
@@ -158,7 +184,17 @@ const Contact = () => {
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-5">
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {/* Honeypot field - invisible to real users */}
+                                <input
+                                    type="text"
+                                    name="website_url_check"
+                                    value={honeypot}
+                                    onChange={(e) => setHoneypot(e.target.value)}
+                                    className="hidden"
+                                    tabIndex={-1}
+                                    autoComplete="off"
+                                />
+                                <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <label htmlFor="name" className="block text-sm font-medium mb-2">
                                             Your Name

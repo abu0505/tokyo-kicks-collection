@@ -81,7 +81,7 @@ const RecentlyViewedDropdown = ({
         <button className="relative p-2 hover:text-accent rounded-lg transition-colors group flex items-center gap-1.5">
           <History className="w-5 h-5" />
           <span className="text-xs font-bold tracking-wide hidden sm:inline">RECENT</span>
-          <span className="absolute -top-1 -right-1 bg-accent text-background text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+          <span className="absolute top-0 right-0 md:-top-1 md:-right-1 bg-accent text-background text-[10px] md:text-xs font-bold w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center">
             {recentShoes.length}
           </span>
           <span className="sr-only">Recently viewed</span>

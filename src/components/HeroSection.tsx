@@ -27,7 +27,7 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
             </p>
 
             {/* Main heading */}
-            <h1 className="text-5xl md:text-7xl lg:text-9xl font-black leading-[0.85] mb-6 md:mb-8 animate-slide-in font-sans">
+            <h1 className="text-8xl md:text-7xl lg:text-9xl font-black leading-[0.85] mb-6 md:mb-8 animate-slide-in font-sans">
               TOKYO
               <span className="block text-accent">SHOES</span>
             </h1>

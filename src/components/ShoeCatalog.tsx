@@ -77,8 +77,8 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
           </div>
 
           {/* Grid - Single column on mobile, 4 columns on desktop */}
-          <div className={isMobile 
-            ? "flex flex-col gap-3" 
+          <div className={isMobile
+            ? "flex flex-col gap-3"
             : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           }>
             {shoes.map((shoe, index) => (

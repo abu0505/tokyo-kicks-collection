@@ -12,7 +12,7 @@ import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
 import ProductImageZoomV2 from '@/components/ProductImageZoomV2';
 import RelatedProducts from '@/components/RelatedProducts';
-import WhatsAppButton from '@/components/WhatsAppButton';
+
 
 import SizeGuideModal from '@/components/SizeGuideModal';
 import ReviewForm from '@/components/reviews/ReviewForm';
@@ -349,8 +349,8 @@ const ProductDetail = () => {
 
       <Footer />
 
-      {/* WhatsApp Floating Button */}
-      <WhatsAppButton shoe={shoe} selectedSize={selectedSize} />
+      <Footer />
+
 
       {/* Back to Top Button */}
       <BackToTopButton />
