@@ -105,7 +105,7 @@ const Inventory = () => {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-1">
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -172,21 +172,21 @@ const Inventory = () => {
                     style={{ display: 'table-row' }}
                   >
                     <TableCell>
-                      <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
                         {shoe.image_url ? (
                           <img
                             src={shoe.image_url}
                             alt={shoe.name}
-                            className="w-12 h-12 object-cover rounded"
+                            className="w-16 h-16 object-cover rounded"
                           />
                         ) : (
-                          <div className="w-12 h-12 bg-muted rounded flex items-center justify-center">
+                          <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
                             📦
                           </div>
                         )}
                         <div>
+                          <p className="text-xs text-muted-foreground">{shoe.brand}</p>
                           <p className="font-bold">{shoe.name}</p>
-                          <p className="text-sm text-muted-foreground">{shoe.brand}</p>
                         </div>
                       </div>
                     </TableCell>
@@ -206,17 +206,17 @@ const Inventory = () => {
                       {formatPrice(shoe.price)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-1">
+                      <div className="flex flex-wrap gap-0.5">
                         {shoe.sizes.slice(0, 4).map((size) => (
                           <span
                             key={size}
-                            className="text-xs bg-secondary px-2 py-0.5 rounded"
+                            className="text-xs bg-secondary px-1.5 py-0.5 rounded"
                           >
                             {size}
                           </span>
                         ))}
                         {shoe.sizes.length > 4 && (
-                          <span className="text-xs bg-secondary px-2 py-0.5 rounded">
+                          <span className="text-xs bg-secondary px-1.5 py-0.5 rounded">
                             +{shoe.sizes.length - 4}
                           </span>
                         )}

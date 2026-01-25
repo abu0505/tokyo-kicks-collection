@@ -349,9 +349,6 @@ const ProductDetail = () => {
 
       <Footer />
 
-      <Footer />
-
-
       {/* Back to Top Button */}
       <BackToTopButton />
     </motion.div>

@@ -64,14 +64,14 @@ const RelatedProducts = ({ currentShoe, onWishlistClick, wishlistIds }: RelatedP
 
   return (
     <section className="py-10 md:py-16 border-t-2 border-foreground/10">
-      <div className="container px-4">
+      <div className="container px-2">
         <h2 className="text-2xl md:text-3xl font-black mb-6 md:mb-8 tracking-tight">
           YOU MAY ALSO LIKE
         </h2>
 
         {isMobile ? (
           // Mobile: Horizontal scrolling
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+          <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
             {relatedShoes.map((shoe) => (
               <div key={shoe.id} className="min-w-[260px] max-w-[260px] flex-shrink-0">
                 <ShoeCard

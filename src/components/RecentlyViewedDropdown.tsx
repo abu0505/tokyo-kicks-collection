@@ -1,6 +1,6 @@
 import { History, X, Trash2, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { Shoe } from '@/types/shoe';
 import { formatPrice } from '@/lib/format';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,11 +52,9 @@ const RecentlyViewedDropdown = ({
         .filter((s): s is Shoe => s !== undefined);
     },
     enabled: recentlyViewedIds.length > 0,
+    placeholderData: keepPreviousData,
   });
 
-  if (recentShoes.length === 0) {
-    return null;
-  }
 
   const handleRemoveItem = (e: React.MouseEvent, id: string) => {
     e.preventDefault();
@@ -111,12 +109,12 @@ const RecentlyViewedDropdown = ({
             <div key={shoe!.id} className="relative group/item">
               <Link
                 to={`/product/${shoe!.id}`}
-                className="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors border-b border-muted last:border-b-0 pr-10"
+                className="flex items-center gap-2.5 p-2.5 hover:bg-muted/50 transition-colors border-b border-muted last:border-b-0 pr-10"
               >
                 <img
                   src={shoe!.image}
                   alt={shoe!.name}
-                  className="w-14 h-14 object-cover rounded"
+                  className="w-16 h-16 object-cover rounded"
                 />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold truncate">{shoe!.name}</p>
@@ -130,7 +128,7 @@ const RecentlyViewedDropdown = ({
                 <button
                   onClick={(e) => handleRemoveItem(e, shoe!.id)}
                   className="absolute top-1/2 -translate-y-1/2 right-3 w-6 h-6 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground 
-                             flex items-center justify-center transition-colors opacity-0 group-hover/item:opacity-100"
+                             flex items-center justify-center transition-colors"
                   title="Remove from recently viewed"
                 >
                   <X className="w-3.5 h-3.5" />

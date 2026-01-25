@@ -68,17 +68,17 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
   return (
     <>
       <section className="py-8 bg-background">
-        <div className="container">
+        <div className="container px-1">
           {/* Results count */}
           <div className="flex items-center justify-between mb-6 md:mb-8">
-            <p className="text-sm text-muted-foreground font-medium">
+            <p className="text-sm px-3 text-muted-foreground font-medium">
               SHOWING <span className="text-foreground font-bold">{shoes.length}</span> RESULTS
             </p>
           </div>
 
           {/* Grid - Single column on mobile, 4 columns on desktop */}
           <div className={isMobile
-            ? "flex flex-col gap-3"
+            ? "flex flex-col gap-1.5"
             : "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           }>
             {shoes.map((shoe, index) => (

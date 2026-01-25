@@ -27,7 +27,7 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
             </p>
 
             {/* Main heading */}
-            <h1 className="text-8xl md:text-7xl lg:text-9xl font-black leading-[0.85] mb-6 md:mb-8 animate-slide-in font-sans">
+            <h1 className="text-6xl md:text-7xl lg:text-9xl font-black leading-[0.85] mb-6 md:mb-8 animate-slide-in font-sans">
               TOKYO
               <span className="block text-accent">SHOES</span>
             </h1>
@@ -51,7 +51,7 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
               <Button
                 size="lg"
                 variant="outline"
-                className="border-2 border-accent bg-foreground text-accent hover:bg-accent hover:text-accent-foreground px-6 md:px-8 py-5 md:py-6 text-base md:text-lg font-bold w-full sm:w-auto"
+                className="border-2 border-accent-foreground bg-foreground text-accent-foreground hover:bg-accent-foreground hover:text-foreground px-6 md:px-8 py-5 md:py-6 text-base md:text-lg font-bold w-full sm:w-auto"
               >
                 NEW ARRIVALS
               </Button>
@@ -60,7 +60,7 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-6 md:gap-12 mt-10 md:mt-16 pt-6 md:pt-8 border-t border-primary-foreground/20 animate-fade-in" style={{ animationDelay: '0.6s' }}>
               <div className="text-center md:text-left">
-                <p className="text-2xl md:text-4xl font-black text-accent">50+</p>
+                <p className="text-2xl md:text-4xl font-black text-accent-foreground">50+</p>
                 <p className="text-xs md:text-sm text-primary-foreground/60 uppercase tracking-wide">Brands</p>
               </div>
               <div className="text-center md:text-left">

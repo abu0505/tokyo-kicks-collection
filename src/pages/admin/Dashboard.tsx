@@ -87,9 +87,9 @@ const AdminDashboard = () => {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-5">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between px-1">
           <div>
             <h1 className="text-3xl font-black tracking-tight">Dashboard Overview</h1>
             <p className="text-muted-foreground mt-1">
@@ -105,7 +105,7 @@ const AdminDashboard = () => {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-1">
           {statCards.map((card, index) => (
             <motion.div
               key={card.title}
@@ -139,11 +139,11 @@ const AdminDashboard = () => {
           transition={{ duration: 0.3, delay: 0.4 }}
           className="bg-card"
         >
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 px-2">
             <Clock className="h-5 w-5 text-muted-foreground" />
             <h2 className="text-xl font-black">Recent Activity</h2>
           </div>
-          <p className="text-sm text-muted-foreground mb-6">
+          <p className="text-sm text-muted-foreground mb-6 px-2">
             Last 10 updates to the inventory.
           </p>
 

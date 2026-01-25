@@ -106,7 +106,7 @@ const ShoeCardMobile = ({
             }}
             disabled={isSoldOut && !showRemoveButton}
             className={`absolute top-2 right-2 w-8 h-8 rounded-full border border-foreground/50 transition-all ${isInWishlist
-              ? 'bg-accent text-accent-foreground'
+              ? 'bg-accent text-accent-foreground hover:bg-accent/90'
               : 'bg-background/80'
               }`}
           >
