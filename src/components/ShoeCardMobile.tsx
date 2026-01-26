@@ -45,12 +45,6 @@ const ShoeCardMobile = React.memo(({
       const hintShown = localStorage.getItem(SWIPE_HINT_KEY);
       if (!hintShown) {
         setShowHint(true);
-        // Auto-hide after 4 seconds
-        const timer = setTimeout(() => {
-          setShowHint(false);
-          localStorage.setItem(SWIPE_HINT_KEY, 'true');
-        }, 4000);
-        return () => clearTimeout(timer);
       }
     }
   }, [showSwipeHint]);
@@ -63,11 +57,31 @@ const ShoeCardMobile = React.memo(({
   // Swipe logic - much lighter feel
   const x = useMotionValue(0);
   const SWIPE_THRESHOLD = 60; // Reduced from 100
-  
+
+  // Haptic feedback logic
+  useEffect(() => {
+    let hasVibrated = false;
+    const unsubscribe = x.on("change", (latest) => {
+      const absX = Math.abs(latest);
+      if (absX > SWIPE_THRESHOLD && !hasVibrated) {
+        // Vibrate when crossing threshold
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+          navigator.vibrate(15);
+        }
+        hasVibrated = true;
+      } else if (absX < SWIPE_THRESHOLD && hasVibrated) {
+        // Reset when going back
+        hasVibrated = false;
+      }
+    });
+
+    return () => unsubscribe();
+  }, [x, SWIPE_THRESHOLD]);
+
   // Opacity transforms - start showing feedback earlier
   const opacityRight = useTransform(x, [30, SWIPE_THRESHOLD], [0, 1]);
   const opacityLeft = useTransform(x, [-30, -SWIPE_THRESHOLD], [0, 1]);
-  
+
   // Scale effect for visual feedback
   const scale = useTransform(
     x,
@@ -84,7 +98,7 @@ const ShoeCardMobile = React.memo(({
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     const swipeDistance = Math.abs(info.offset.x);
-    
+
     if (swipeDistance > SWIPE_THRESHOLD) {
       if (mode === 'catalog') {
         // In catalog: ANY direction adds to wishlist
@@ -100,7 +114,7 @@ const ShoeCardMobile = React.memo(({
         onWishlistClick(shoe);
       }
     }
-    
+
     // Animate back to center with spring
     animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
   };
@@ -146,7 +160,7 @@ const ShoeCardMobile = React.memo(({
     <div className="relative overflow-hidden rounded-lg">
       {/* Swipe Hint Overlay */}
       {showHint && (
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -172,8 +186,8 @@ const ShoeCardMobile = React.memo(({
               </motion.div>
             </div>
             <p className="text-white font-bold text-sm">
-              {mode === 'catalog' 
-                ? 'Swipe to add to wishlist' 
+              {mode === 'catalog'
+                ? 'Swipe to add to wishlist'
                 : 'Swipe to remove from wishlist'}
             </p>
             <p className="text-white/60 text-xs">Tap to dismiss</p>

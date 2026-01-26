@@ -127,7 +127,7 @@ const Contact = () => {
         <div className="min-h-screen bg-background">
             <Header />
 
-            <main className="container py-12">
+            <main className="container py-12 px-2">
                 {/* Page Header */}
                 <motion.div
                     className="mb-12 text-center"
@@ -135,7 +135,7 @@ const Contact = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
                 >
-                    <h1 className="text-5xl font-black italic mb-4">Get In Touch</h1>
+                    <h1 className="text-5xl font-black mb-4">Get In Touch</h1>
                     <p className="text-muted-foreground max-w-2xl mx-auto">
                         Have questions about our sneakers? Want to know more about a specific product?
                         We're here to help. Drop us a message and we'll get back to you as soon as possible.
@@ -143,8 +143,30 @@ const Contact = () => {
                 </motion.div>
 
                 {/* Contact Info Cards */}
+                {/* Mobile View: Single Card */}
+                <div className="block lg:hidden mb-4">
+                    <div className="bg-secondary/50 border border-foreground/10 rounded-xl overflow-hidden">
+                        {contactInfo.map((info, index) => (
+                            <div
+                                key={info.title}
+                                className={`p-5 flex items-center gap-4 hover:bg-accent/5 transition-colors ${index !== contactInfo.length - 1 ? 'border-b border-foreground/10' : ''
+                                    }`}
+                            >
+                                <div className={`w-10 h-10 rounded-lg ${info.color} flex items-center justify-center shrink-0`}>
+                                    <info.icon className="w-5 h-5" />
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="text-xs text-muted-foreground mb-0.5">{info.title}</p>
+                                    <p className="font-bold text-sm truncate">{info.value}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Desktop View: Grid of Cards */}
                 <motion.div
-                    className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
+                    className="hidden lg:grid lg:grid-cols-4 gap-4 mb-12"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.1 }}
@@ -157,9 +179,9 @@ const Contact = () => {
                             <div className={`w-12 h-12 rounded-lg ${info.color} flex items-center justify-center shrink-0`}>
                                 <info.icon className="w-6 h-6" />
                             </div>
-                            <div>
+                            <div className="overflow-hidden">
                                 <p className="text-sm text-muted-foreground">{info.title}</p>
-                                <p className="font-bold text-sm">{info.value}</p>
+                                <p className="font-bold text-sm truncate" title={info.value}>{info.value}</p>
                             </div>
                         </div>
                     ))}
@@ -168,14 +190,14 @@ const Contact = () => {
 
 
                 {/* Main Content */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     {/* Contact Form */}
                     <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ duration: 0.5, delay: 0.2 }}
                     >
-                        <div className="bg-secondary/30 border border-foreground/10 rounded-xl p-8">
+                        <div className="bg-secondary/30 border border-foreground/10 rounded-xl p-5">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="w-10 h-10 rounded-lg bg-accent/20 flex items-center justify-center">
                                     <MessageSquare className="w-5 h-5 text-accent" />
@@ -312,12 +334,12 @@ const Contact = () => {
 
                 {/* FAQ Section - Moved to bottom */}
                 <motion.div
-                    className="mb-12 pt-12"
+                    className="mb-4 pt-4"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.4 }}
                 >
-                    <div className="bg-secondary/30 border border-foreground/10 rounded-xl p-8">
+                    <div className="bg-secondary/30 border border-foreground/10 rounded-xl p-4">
                         <h2 className="text-2xl font-bold mb-6">Frequently Asked Questions</h2>
 
                         <div className="space-y-3">
