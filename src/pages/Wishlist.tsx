@@ -23,7 +23,7 @@ const Wishlist = () => {
   const { wishlistIds, removeFromWishlist } = useWishlist();
   const [quickViewShoe, setQuickViewShoe] = useState<DbShoe | null>(null);
   const isMobile = useIsMobile();
-  
+
   // Local state to prevent flicker on removal
   const [displayedShoes, setDisplayedShoes] = useState<Shoe[]>([]);
 
@@ -197,10 +197,13 @@ const Wishlist = () => {
                   key={shoe.id}
                   layout
                   layoutId={shoe.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.2 } }}
-                  transition={{ delay: index * 0.03, type: 'spring', stiffness: 500, damping: 30 }}
+                  transition={{
+                    layout: { type: "spring", stiffness: 300, damping: 30, mass: 1 },
+                    opacity: { duration: 0.2 }
+                  }}
                   className="h-full"
                 >
                   {isMobile ? (

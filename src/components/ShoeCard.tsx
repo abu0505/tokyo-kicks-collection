@@ -39,7 +39,7 @@ const ShoeCard = React.memo(({
   return (
     <div
       onClick={handleCardClick}
-      className={`group relative bg-secondary/30 border-2 border-foreground overflow-hidden transition-all cursor-pointer hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 h-full flex flex-col ${isSoldOut ? 'opacity-60' : ''
+      className={`group relative bg-secondary/30 border-2 border-foreground overflow-hidden transition-all duration-300 cursor-pointer hover:tokyo-shadow hover:-translate-y-1 hover:translate-x-1 h-full flex flex-col ${isSoldOut ? 'opacity-60' : ''
         }`}
     >
       {/* Image Container */}

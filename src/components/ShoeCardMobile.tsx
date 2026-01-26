@@ -64,9 +64,9 @@ const ShoeCardMobile = React.memo(({
     const unsubscribe = x.on("change", (latest) => {
       const absX = Math.abs(latest);
       if (absX > SWIPE_THRESHOLD && !hasVibrated) {
-        // Vibrate when crossing threshold
+        // Vibrate when crossing threshold (distinct "tick")
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
-          navigator.vibrate(15);
+          navigator.vibrate(20);
         }
         hasVibrated = true;
       } else if (absX < SWIPE_THRESHOLD && hasVibrated) {
@@ -86,7 +86,7 @@ const ShoeCardMobile = React.memo(({
   const scale = useTransform(
     x,
     [-SWIPE_THRESHOLD, 0, SWIPE_THRESHOLD],
-    [0.98, 1, 0.98]
+    [0.95, 1, 0.95]
   );
 
   const handleCardClick = (e: React.MouseEvent) => {
@@ -98,13 +98,20 @@ const ShoeCardMobile = React.memo(({
 
   const handleDragEnd = (_: any, info: PanInfo) => {
     const swipeDistance = Math.abs(info.offset.x);
+    const draggedRight = info.offset.x > 0;
 
     if (swipeDistance > SWIPE_THRESHOLD) {
+      // Stronger feedback on action commit
+      if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        navigator.vibrate([10, 30, 10]); // "Success" pattern
+      }
+
       if (mode === 'catalog') {
         // In catalog: ANY direction adds to wishlist
         if (isSoldOut) {
           toast.error('This item is sold out');
         } else if (isInWishlist) {
+          // If already in wishlist, maybe just shake?
           toast.info(`${shoe.name} is already in your wishlist`);
         } else {
           onWishlistClick(shoe);
@@ -112,11 +119,15 @@ const ShoeCardMobile = React.memo(({
       } else if (mode === 'wishlist') {
         // In wishlist: ANY direction removes from wishlist
         onWishlistClick(shoe);
+        // Don't animate back if removing (list will handle layout anim)
+        return;
       }
     }
 
-    // Animate back to center with spring
-    animate(x, 0, { type: 'spring', stiffness: 400, damping: 30 });
+    // Animate back to center with BOUNCY spring
+    // If we swiped right, we want it to "bounce" a bit to the left (negative) before settling
+    // This happens naturally with under-damped spring
+    animate(x, 0, { type: 'spring', stiffness: 500, damping: 14 });
   };
 
   // Determine indicator content based on mode
@@ -230,25 +241,7 @@ const ShoeCardMobile = React.memo(({
           )}
 
           {/* Wishlist Button on Image */}
-          <Button
-            size="icon"
-            variant="secondary"
-            onClick={(e) => {
-              e.stopPropagation();
-              onWishlistClick(shoe);
-            }}
-            disabled={isSoldOut && !showRemoveButton}
-            className={`absolute top-2 right-2 w-8 h-8 rounded-full border border-foreground/50 transition-all ${isInWishlist
-              ? 'bg-accent text-accent-foreground hover:bg-accent/90'
-              : 'bg-background/80'
-              }`}
-          >
-            {showRemoveButton ? (
-              <X className="h-4 w-4" />
-            ) : (
-              <Heart className={`h-4 w-4 ${isInWishlist ? 'fill-current' : ''}`} />
-            )}
-          </Button>
+
         </div>
 
         {/* Info Container - Right Side */}
