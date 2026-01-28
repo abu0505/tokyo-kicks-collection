@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw, Loader2 } from 'lucide-react';
+import { ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw, ShoppingCart } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
 import ProductImageZoomV2 from '@/components/ProductImageZoomV2';
 import RelatedProducts from '@/components/RelatedProducts';
+import TextLoader from '@/components/TextLoader';
 
 
 import SizeGuideModal from '@/components/SizeGuideModal';
@@ -20,6 +21,7 @@ import ReviewList from '@/components/reviews/ReviewList';
 import StarRating from '@/components/StarRating';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { useCart } from '@/contexts/CartContext';
 import { useReviews } from '@/hooks/useReviews';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,6 +34,7 @@ const ProductDetail = () => {
   const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { wishlistIds, toggleWishlist, isInWishlist } = useWishlist();
+  const { addToCart } = useCart();
   const { stats: reviewStats, refetch: refetchReviews } = useReviews(id);
 
   const { data: shoe, isLoading } = useQuery({
@@ -82,7 +85,7 @@ const ProductDetail = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="h-12 w-12 animate-spin text-foreground" />
+        <TextLoader className="text-2xl" />
       </div>
     );
   }
@@ -116,6 +119,25 @@ const ProductDetail = () => {
 
   const handleRelatedWishlistClick = (relatedShoe: Shoe) => {
     toggleWishlist(relatedShoe.id, relatedShoe.name);
+  };
+
+  const handleAddToCart = () => {
+    if (!shoe) return;
+    if (!selectedSize) {
+      toast.error('Please select a size first');
+      return;
+    }
+
+    addToCart({
+      shoeId: shoe.id,
+      name: shoe.name,
+      price: shoe.price,
+      image: shoe.image,
+      quantity: 1,
+      size: selectedSize,
+      color: 'Default', // Adding default color as it's not in the shoe type yet explicitly
+      brand: shoe.brand
+    });
   };
 
   const handleShare = async () => {
@@ -172,11 +194,6 @@ const ProductDetail = () => {
               {isNew && (
                 <Badge className="bg-accent text-accent-foreground font-bold px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm">
                   NEW ARRIVAL
-                </Badge>
-              )}
-              {isSoldOut && (
-                <Badge variant="secondary" className="bg-foreground text-background font-bold px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm">
-                  SOLD OUT
                 </Badge>
               )}
             </div>
@@ -260,17 +277,26 @@ const ProductDetail = () => {
             {/* CTA Buttons */}
             <div className="flex gap-3 mb-6 md:mb-8">
               <Button
-                onClick={handleWishlistClick}
+                onClick={handleAddToCart}
                 disabled={isSoldOut}
-                className={`flex-1 h-12 md:h-14 text-sm md:text-lg font-bold transition-all ${isWishlisted
-                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                  : isSoldOut
-                    ? 'bg-muted text-muted-foreground cursor-not-allowed'
-                    : 'bg-foreground text-background hover:bg-accent hover:text-accent-foreground tokyo-shadow hover:-translate-y-1 hover:translate-x-1'
+                className={`flex-1 h-12 md:h-14 text-sm md:text-lg font-bold transition-all ${isSoldOut
+                  ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                  : 'bg-primary text-primary-foreground hover:bg-primary/90 tokyo-shadow hover:-translate-y-1 hover:translate-x-1'
+                  }`}
+              >
+                <ShoppingCart className="mr-2 h-4 w-4 md:h-5 md:w-5" />
+                {isSoldOut ? 'SOLD OUT' : 'ADD TO CART'}
+              </Button>
+              <Button
+                onClick={handleWishlistClick}
+                variant="outline"
+                className={`flex-1 h-12 md:h-14 text-sm md:text-lg font-bold transition-all border-2 border-foreground ${isWishlisted
+                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90 border-destructive'
+                  : 'bg-background text-foreground hover:bg-black hover:text-accent-foreground'
                   }`}
               >
                 <Heart className={`mr-2 h-4 w-4 md:h-5 md:w-5 ${isWishlisted ? 'fill-current' : ''}`} />
-                {isSoldOut ? 'SOLD OUT' : isWishlisted ? 'SAVED' : 'ADD TO WISHLIST'}
+                {isWishlisted ? 'SAVED' : 'WISHLIST'}
               </Button>
             </div>
 

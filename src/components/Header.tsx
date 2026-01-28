@@ -1,9 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { User, LogOut, Heart, Settings, Menu, X, Footprints, MessageCircle } from 'lucide-react';
+import { User, LogOut, Heart, Settings, Menu, Footprints, MessageCircle, ShoppingCart, ChevronDown, Clock, Package } from 'lucide-react';
 import { useState } from 'react';
 import { useRecentlyViewed } from '@/hooks/useRecentlyViewed';
 import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/contexts/WishlistContext';
+import { useCart } from '@/contexts/CartContext';
 import RecentlyViewedDropdown from './RecentlyViewedDropdown';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,16 +19,26 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+
 
 const Header = () => {
   const { recentlyViewed, clearRecentlyViewed, removeFromRecentlyViewed } = useRecentlyViewed();
   const { user, isAdmin, signOut } = useAuth();
   const { wishlistIds } = useWishlist();
+  const { cartCount } = useCart();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const wishlistCount = wishlistIds.length;
+
 
   const handleLogout = async () => {
     await signOut();
@@ -47,17 +58,13 @@ const Header = () => {
     }
   };
 
-  return (
-    <header className="bg-background/80 backdrop-blur-md backdrop-saturate-150 border-b-2 border-foreground py-3 md:py-4 sticky top-0 z-50">
-      <div className="container flex items-center justify-between">
-        {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="Tokyo Shoes" className="h-8 md:h-[46px] w-auto" />
-        </Link>
 
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-6">
-          <nav className="flex items-center gap-6">
+  return (
+    <>
+      <header className="bg-background/80 backdrop-blur-md backdrop-saturate-150 border-b-2 border-foreground py-3 md:py-4 sticky top-0 z-50">
+        <div className="container flex items-center justify-between relative min-h-[46px]">
+          {/* Left: Catalog & Recent (Desktop) */}
+          <div className="hidden md:flex items-center gap-6 flex-1 justify-start">
             <a
               href="#catalog"
               onClick={scrollToCatalog}
@@ -66,16 +73,7 @@ const Header = () => {
               <Footprints className="w-4 h-4" />
               CATALOG
             </a>
-            <Link
-              to="/contact"
-              className="group flex items-center gap-1.5 text-sm font-bold tracking-wide hover:text-accent transition-colors"
-            >
-              <MessageCircle className="w-4 h-4" />
-              CONTACT US
-            </Link>
-          </nav>
 
-          <div className="flex items-center gap-3">
             {/* Recently Viewed Dropdown */}
             {recentlyViewed.length > 0 && (
               <Tooltip>
@@ -93,14 +91,31 @@ const Header = () => {
                 </TooltipContent>
               </Tooltip>
             )}
+          </div>
 
+          {/* Center: Logo */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="Tokyo Shoes" className="h-8 md:h-[46px] w-auto" />
+            </Link>
+          </div>
+
+          {/* Mobile Logo (Visible only on mobile, since absolute one might overlap or behave oddly on small screens if not handled) */}
+          <div className="md:hidden">
+            <Link to="/" className="flex items-center gap-2">
+              <img src="/logo.png" alt="Tokyo Shoes" className="h-8 w-auto" />
+            </Link>
+          </div>
+
+
+          {/* Right: Icons & Account (Desktop) */}
+          <div className="hidden md:flex items-center gap-3 flex-1 justify-end">
             {/* Wishlist Button */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Link to="/wishlist" className="relative">
-                  <button className="relative p-2 hover:text-accent rounded-lg transition-colors group flex items-center gap-1.5">
+                  <button className="relative p-2 hover:text-accent rounded-lg transition-colors">
                     <Heart className="w-5 h-5" />
-                    <span className="text-xs font-bold tracking-wide">WISHLIST</span>
                     {wishlistCount > 0 && (
                       <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
                         {wishlistCount}
@@ -114,148 +129,234 @@ const Header = () => {
               </TooltipContent>
             </Tooltip>
 
-            {/* Auth Section */}
-            {user ? (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="font-bold"
-                >
-                  <LogOut className="h-4 w-4 mr-1" />
-                  LOGOUT
-                </Button>
-                {isAdmin && (
-                  <Link to="/admin">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="font-bold text-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
-                    >
-                      <Settings className="h-4 w-4 mr-1" />
-                      MANAGE
-                    </Button>
+            {/* Cart Button - Only for logged in users */}
+            {user && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link to="/cart" className="relative">
+                    <button className="relative p-2 hover:text-accent rounded-lg transition-colors">
+                      <ShoppingCart className="w-5 h-5" />
+                      {cartCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-accent text-accent-foreground text-xs font-bold w-5 h-5 rounded-full flex items-center justify-center">
+                          {cartCount}
+                        </span>
+                      )}
+                    </button>
                   </Link>
-                )}
-              </div>
-            ) : (
-              <Link to="/auth">
-                <Button variant="ghost" size="sm" className="font-bold">
-                  <User className="h-4 w-4 mr-1" />
-                  LOGIN
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Shopping Cart</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+
+            {/* Account Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="font-bold gap-1 hover:bg-black hover:text-white transition-colors">
+                  <User className="h-4 w-4" />
+                  Account
+                  <ChevronDown className="h-3 w-3" />
                 </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {user ? (
+                  <>
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin" className="flex items-center gap-2 cursor-pointer focus:bg-black focus:text-white transition-colors">
+                          <Settings className="h-4 w-4" />
+                          Manage
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+
+                    <DropdownMenuItem asChild>
+                      <Link to="/contact" className="flex items-center gap-2 cursor-pointer focus:bg-black focus:text-white transition-colors">
+                        <MessageCircle className="h-4 w-4" />
+                        Contact
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/order-history" className="flex items-center gap-2 cursor-pointer focus:bg-black focus:text-white transition-colors">
+                        <Package className="h-4 w-4" />
+                        Order History
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive-foreground">
+                      <LogOut className="h-4 w-4" />
+                      Logout
+                    </DropdownMenuItem>
+                    <div className="px-2 py-1.5 text-xs font-medium truncate">
+                      {user.user_metadata?.full_name || user.email}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <DropdownMenuItem asChild>
+                      <Link to="/auth" className="flex items-center gap-2 cursor-pointer focus:bg-black focus:text-white transition-colors">
+                        <User className="h-4 w-4" />
+                        Login
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/contact" className="flex items-center gap-2 cursor-pointer focus:bg-black focus:text-white transition-colors">
+                        <MessageCircle className="h-4 w-4" />
+                        Contact
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Mobile Actions */}
+          <div className="flex md:hidden items-center gap-2">
+            {/* Cart Icon - Mobile - Only for logged in users */}
+            {user && (
+              <Link to="/cart" className="relative p-2">
+                <ShoppingCart className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-accent text-accent-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    {cartCount}
+                  </span>
+                )}
               </Link>
             )}
-          </div>
-        </div>
 
-        {/* Mobile Actions */}
-        <div className="flex md:hidden items-center gap-2">
-          {/* Wishlist Icon */}
-          <Link to="/wishlist" className="relative p-2">
-            <Heart className="w-5 h-5" />
-            {wishlistCount > 0 && (
-              <span className="absolute top-0 right-0 bg-accent text-accent-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                {wishlistCount}
-              </span>
+            {/* Wishlist Icon */}
+            <Link to="/wishlist" className="relative p-2">
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute top-0 right-0 bg-accent text-accent-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                  {wishlistCount}
+                </span>
+              )}
+            </Link>
+
+            {/* Recently Viewed - Mobile */}
+            {recentlyViewed.length > 0 && (
+              <RecentlyViewedDropdown
+                recentlyViewedIds={recentlyViewed}
+                onRemoveItem={removeFromRecentlyViewed}
+                onClearAll={clearRecentlyViewed}
+              />
             )}
-          </Link>
 
-          {/* Recently Viewed - Mobile */}
-          {recentlyViewed.length > 0 && (
-            <RecentlyViewedDropdown
-              recentlyViewedIds={recentlyViewed}
-              onRemoveItem={removeFromRecentlyViewed}
-              onClearAll={clearRecentlyViewed}
-            />
-          )}
+            {/* Mobile Menu */}
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-10 w-10">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="w-[280px] bg-background border-l-2 border-foreground">
+                <SheetHeader className="border-b border-foreground/10 pb-4 mb-4">
+                  <SheetTitle className="text-left font-black">MENU</SheetTitle>
+                </SheetHeader>
 
-          {/* Mobile Menu */}
-          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-10 w-10">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[280px] bg-background border-l-2 border-foreground">
-              <SheetHeader className="border-b border-foreground/10 pb-4 mb-4">
-                <SheetTitle className="text-left font-black">MENU</SheetTitle>
-              </SheetHeader>
-
-              <nav className="flex flex-col gap-4">
-                <a
-                  href="#catalog"
-                  onClick={scrollToCatalog}
-                  className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                >
-                  <Footprints className="w-5 h-5" />
-                  CATALOG
-                </a>
-                <Link
-                  to="/contact"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  CONTACT US
-                </Link>
-                <Link
-                  to="/wishlist"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                >
-                  <Heart className="w-5 h-5" />
-                  WISHLIST
-                  {wishlistCount > 0 && (
-                    <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                      {wishlistCount}
-                    </span>
-                  )}
-                </Link>
-
-                <div className="border-t border-foreground/10 pt-4 mt-2">
-                  {user ? (
-                    <>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        {user.email}
-                      </p>
-                      {isAdmin && (
-                        <Link
-                          to="/admin"
-                          onClick={() => setMobileMenuOpen(false)}
-                          className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
-                        >
-                          <Settings className="w-5 h-5" />
-                          MANAGE
-                        </Link>
-                      )}
-                      <button
-                        onClick={handleLogout}
-                        className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 w-full text-left"
-                      >
-                        <LogOut className="w-5 h-5" />
-                        LOGOUT
-                      </button>
-                    </>
-                  ) : (
+                <nav className="flex flex-col gap-4">
+                  <a
+                    href="#catalog"
+                    onClick={scrollToCatalog}
+                    className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                  >
+                    <Footprints className="w-5 h-5" />
+                    CATALOG
+                  </a>
+                  <Link
+                    to="/contact"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                  >
+                    <MessageCircle className="w-5 h-5" />
+                    CONTACT US
+                  </Link>
+                  {user && (
                     <Link
-                      to="/auth"
+                      to="/order-history"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
+                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
                     >
-                      <User className="w-5 h-5" />
-                      LOGIN
+                      <Package className="w-5 h-5" />
+                      ORDER HISTORY
                     </Link>
                   )}
-                </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
+                  <Link
+                    to="/wishlist"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                  >
+                    <Heart className="w-5 h-5" />
+                    WISHLIST
+                    {wishlistCount > 0 && (
+                      <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                        {wishlistCount}
+                      </span>
+                    )}
+                  </Link>
+                  {user && (
+                    <Link
+                      to="/cart"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                    >
+                      <ShoppingCart className="w-5 h-5" />
+                      CART
+                      {cartCount > 0 && (
+                        <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                          {cartCount}
+                        </span>
+                      )}
+                    </Link>
+                  )}
+
+                  <div className="border-t border-foreground/10 pt-4 mt-2">
+                    {user ? (
+                      <>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          {user.user_metadata?.full_name || user.email}
+                        </p>
+                        {isAdmin && (
+                          <Link
+                            to="/admin"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
+                          >
+                            <Settings className="w-5 h-5" />
+                            MANAGE
+                          </Link>
+                        )}
+                        <button
+                          onClick={handleLogout}
+                          className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 w-full text-left"
+                        >
+                          <LogOut className="w-5 h-5" />
+                          LOGOUT
+                        </button>
+                      </>
+                    ) : (
+                      <Link
+                        to="/auth"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
+                      >
+                        <User className="w-5 h-5" />
+                        LOGIN
+                      </Link>
+                    )}
+                  </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 };
 
 export default Header;
+

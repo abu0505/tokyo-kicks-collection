@@ -1,4 +1,5 @@
-import { useState, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useQuery } from '@tanstack/react-query';
 import Header from '@/components/Header';
@@ -150,6 +151,17 @@ const Index = () => {
   const handleWishlistClick = (shoe: Shoe) => {
     toggleWishlist(shoe.id, shoe.name);
   };
+
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (hash === '#catalog' && catalogRef.current) {
+      // Small timeout to ensure render
+      setTimeout(() => {
+        catalogRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+    }
+  }, [pathname, hash]);
 
   const scrollToCatalog = () => {
     catalogRef.current?.scrollIntoView({ behavior: 'smooth' });

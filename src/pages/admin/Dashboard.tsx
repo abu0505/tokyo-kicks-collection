@@ -7,6 +7,7 @@ import { DbShoe } from '@/types/database';
 import { formatPrice, formatDate } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import TextLoader from '@/components/TextLoader';
 
 const AdminDashboard = () => {
   // Fetch all shoes for dashboard stats and recent activity
@@ -149,7 +150,7 @@ const AdminDashboard = () => {
 
           {isLoading ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground">Loading...</p>
+              <TextLoader />
             </div>
           ) : recentActivity.length === 0 ? (
             <div className="text-center py-12">

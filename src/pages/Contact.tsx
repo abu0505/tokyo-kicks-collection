@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, Phone, MapPin, Clock, Send, MessageSquare, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import TextLoader from '@/components/TextLoader';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
@@ -286,7 +287,7 @@ const Contact = () => {
                                 >
                                     {isSubmitting ? (
                                         <span className="flex items-center gap-2">
-                                            Sending...
+                                            <TextLoader text="Sending" className="text-accent-foreground" isWhite />
                                         </span>
                                     ) : (
                                         <span className="flex items-center gap-2">

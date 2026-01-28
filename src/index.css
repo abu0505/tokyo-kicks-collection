@@ -39,9 +39,12 @@
   ::-webkit-scrollbar {
     display: none;
   }
+
   * {
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    /* Firefox */
   }
 }
 
@@ -185,5 +188,38 @@
 
   .tokyo-shadow-accent {
     box-shadow: 4px 4px 0 hsl(var(--accent));
+  }
+
+  /* Shimmer Text Animation */
+  .animate-text-shimmer {
+    --shimmer-c1: hsl(var(--foreground));
+    --shimmer-c2: hsl(var(--muted-foreground));
+
+    background: linear-gradient(90deg,
+        var(--shimmer-c1) 0%,
+        var(--shimmer-c2) 50%,
+        var(--shimmer-c1) 100%);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: text-shimmer 2.5s linear infinite;
+  }
+}
+
+@keyframes text-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Fix for Recently Viewed Popover Position */
+@media (min-width: 768px) and (max-width: 1023px) {
+  div[data-radix-popper-content-wrapper]:has(.recently-viewed-popover) {
+    left: 5vw !important;
   }
 }

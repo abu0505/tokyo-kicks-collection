@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import TextLoader from '@/components/TextLoader';
 import { toast } from 'sonner';
 
 const loginSchema = z.object({
@@ -202,7 +203,7 @@ const Auth = () => {
               disabled={isSubmitting || authLoading}
               className="w-full h-12 bg-foreground text-background hover:bg-accent hover:text-accent-foreground font-bold text-lg transition-all"
             >
-              {isSubmitting ? 'Loading...' : isLogin ? 'SIGN IN' : 'CREATE ACCOUNT'}
+              {isSubmitting ? <TextLoader className="text-background" isWhite /> : isLogin ? 'SIGN IN' : 'CREATE ACCOUNT'}
             </Button>
           </form>
 

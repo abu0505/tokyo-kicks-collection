@@ -65,9 +65,9 @@ const FilterBar = ({
     <div className="bg-secondary py-4 md:py-6 top-0 z-40">
       <div className="container px-4">
         {/* Mobile: Stacked layout, Desktop: Horizontal */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
           {/* Top Row: Title and Search (Mobile: Row, Desktop: Row distributed) */}
-          <div className="flex flex-row items-center justify-between gap-3 md:gap-8">
+          <div className="flex flex-row items-center justify-between gap-3 md:gap-8 md:flex-1">
             {/* Title */}
             <div className="text-left shrink-0">
               <h1 className="text-xl md:text-3xl font-black uppercase tracking-tighter">The Catalog</h1>
@@ -82,7 +82,7 @@ const FilterBar = ({
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="pl-9 md:pl-12 pr-8 md:pr-10 py-2 md:py-6 h-10 md:h-auto text-sm md:text-lg border-2 border-foreground bg-background focus-visible:ring-accent w-full"
+                className="pl-9 md:pl-12 pr-8 md:pr-10 py-2.5 md:py-3 h-auto text-sm md:text-base border-2 border-foreground bg-background focus-visible:ring-accent w-full"
               />
               {searchQuery && (
                 <button
@@ -98,26 +98,16 @@ const FilterBar = ({
           </div>
 
           {/* Controls Row (Sort & Filter) */}
-          <div className="flex gap-2 md:gap-4 md:justify-end">
+          <div className="flex gap-2 md:gap-4 md:justify-end shrink-0">
             {/* Wraps sort/filter/clear */}
             <div className="flex gap-2 w-full md:w-auto">
               {/* Sort Dropdown */}
-              <Select value={sortOption} onValueChange={(val) => onSortChange(val as SortOption)}>
-                <SelectTrigger className="flex-1 md:w-[150px] border-2 border-foreground py-5 md:py-6 font-bold text-sm">
-                  <SelectValue placeholder="Sort" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest</SelectItem>
-                  <SelectItem value="price-low">Price ↑</SelectItem>
-                  <SelectItem value="price-high">Price ↓</SelectItem>
-                  <SelectItem value="name-asc">A-Z</SelectItem>
-                </SelectContent>
-              </Select>
+
 
               <Button
                 variant="outline"
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex-1 md:flex-none border-2 border-foreground px-4 md:px-6 py-5 md:py-6 font-bold text-sm"
+                className="flex-1 md:flex-none border-2 border-foreground px-4 md:px-6 py-2.5 md:py-3 font-bold text-sm"
               >
                 FILTERS {hasActiveFilters && `(${selectedBrands.length + selectedSizes.length + (priceRange[0] !== minPrice || priceRange[1] !== maxPrice ? 1 : 0)})`}
               </Button>
@@ -137,11 +127,30 @@ const FilterBar = ({
 
         {/* Expanded Filters */}
         {showFilters && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 pt-4 md:pt-6 mt-4 border-t-2 border-foreground/10 animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 md:gap-8 pt-4 md:pt-6 mt-4 border-t-2 border-foreground/10 animate-fade-in">
+            {/* Sort Filter */}
+            <div>
+              <h3 className="font-bold text-xs md:text-sm mb-2 md:mb-3 tracking-wide">SORT BY</h3>
+              <div className="flex flex-wrap gap-1.5 md:gap-2">
+                {(Object.entries(sortLabels) as [SortOption, string][]).map(([value, label]) => (
+                  <Badge
+                    key={value}
+                    variant={sortOption === value ? 'default' : 'outline'}
+                    className={`cursor-pointer px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm font-medium transition-all ${sortOption === value
+                      ? 'bg-foreground text-background hover:bg-foreground/90'
+                      : 'border-2 border-foreground hover:bg-foreground hover:text-background'
+                      }`}
+                    onClick={() => onSortChange(value)}
+                  >
+                    {label}
+                  </Badge>
+                ))}
+              </div>
+            </div>
             {/* Brand Filter */}
             <div>
               <h3 className="font-bold text-xs md:text-sm mb-2 md:mb-3 tracking-wide">BRAND</h3>
-              <div className="flex flex-wrap gap-1.5 md:gap-2 max-h-[120px] overflow-y-auto">
+              <div className="flex flex-wrap gap-1.5 md:gap-2 max-h-[120px] overflow-y-auto scrollbar-hide">
                 {availableBrands.map((brand) => (
                   <Badge
                     key={brand}
@@ -161,7 +170,7 @@ const FilterBar = ({
             {/* Size Filter */}
             <div>
               <h3 className="font-bold text-xs md:text-sm mb-2 md:mb-3 tracking-wide">SIZE (EU)</h3>
-              <div className="flex flex-wrap gap-1.5 md:gap-2 max-h-[120px] overflow-y-auto">
+              <div className="flex flex-wrap gap-1.5 md:gap-2 max-h-[120px] overflow-y-auto scrollbar-hide">
                 {availableSizes.map((size) => (
                   <Badge
                     key={size}

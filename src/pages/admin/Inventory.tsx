@@ -32,6 +32,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AddShoeModal from '@/components/admin/AddShoeModal';
+import TextLoader from '@/components/TextLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
 import { formatPrice } from '@/lib/format';
@@ -152,7 +153,7 @@ const Inventory = () => {
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center py-8">
-                    Loading...
+                    <TextLoader />
                   </TableCell>
                 </TableRow>
               ) : shoes.length === 0 ? (
