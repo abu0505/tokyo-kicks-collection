@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, MoreVertical, Pencil, Trash2 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Plus, MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -37,26 +37,29 @@ import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
 import { formatPrice } from '@/lib/format';
 import { toast } from 'sonner';
+import { useAdminInventory } from '@/hooks/useAdminInventory';
+
+const PAGE_SIZE = 10;
 
 const Inventory = () => {
   const queryClient = useQueryClient();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingShoe, setEditingShoe] = useState<DbShoe | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
-  // Fetch shoes
-  const { data: shoes = [], isLoading } = useQuery({
-    queryKey: ['admin-shoes'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('shoes')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data as DbShoe[];
-    },
+  // Fetch shoes with pagination
+  const { data: inventoryData, isLoading, isFetching } = useAdminInventory({
+    page,
+    pageSize: PAGE_SIZE,
   });
+
+  const shoes = inventoryData?.shoes || [];
+  const totalCount = inventoryData?.totalCount || 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+
+  const startItem = (page - 1) * PAGE_SIZE + 1;
+  const endItem = Math.min(page * PAGE_SIZE, totalCount);
 
   // Update status mutation
   const updateStatusMutation = useMutation({
@@ -103,45 +106,37 @@ const Inventory = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between px-1">
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <h1 className="text-3xl font-black">Inventory Management</h1>
-            <p className="text-muted-foreground mt-1">
-              View, add, edit, and delete shoe inventory.
-            </p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Button
+    <AdminLayout
+      header={
+        <header className="h-20 shrink-0 bg-white border-b border-border px-8 flex items-center justify-between">
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-bold text-black tracking-tight actions uppercase">Inventory Management</h2>
+            <p className="text-xs text-muted-foreground">View and manage your shoe inventory</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <button
               onClick={() => setIsAddModalOpen(true)}
-              className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold"
+              className="h-10 px-4 flex items-center justify-center gap-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-bold transition-all shadow-md shadow-accent/30"
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Plus className="h-5 w-5" />
               Add Shoe
-            </Button>
-          </motion.div>
-        </div>
+            </button>
+          </div>
+        </header>
+      }
+    >
+      <div className="space-y-6">
 
         {/* Table */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
-          className="bg-card"
+          className="bg-white border border-border rounded-2xl shadow-sm overflow-hidden"
         >
           <Table>
             <TableHeader>
-              <TableRow className="border-b-2 border-foreground hover:bg-transparent">
+              <TableRow className="border-b border-border bg-neutral-50/50 hover:bg-neutral-50/50">
                 <TableHead className="font-bold">Name</TableHead>
                 <TableHead className="font-bold">Status</TableHead>
                 <TableHead className="font-bold">Price</TableHead>
@@ -169,7 +164,7 @@ const Inventory = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.2, delay: 0.1 + index * 0.05 }}
-                    className="border-b border-muted hover:bg-muted/50 transition-colors"
+                    className="border-b border-border hover:bg-neutral-50/50 transition-colors"
                     style={{ display: 'table-row' }}
                   >
                     <TableCell>
@@ -268,6 +263,38 @@ const Inventory = () => {
               )}
             </TableBody>
           </Table>
+
+          {/* Pagination */}
+          {!isLoading && totalCount > 0 && (
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border bg-secondary/50">
+              <p className="text-sm text-muted-foreground">
+                Showing <span className="font-bold text-foreground">{startItem}-{endItem}</span> of{' '}
+                <span className="font-bold text-foreground">{totalCount}</span> items
+              </p>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || isFetching}
+                  className="border-foreground/20"
+                >
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Previous
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  disabled={page >= totalPages || isFetching}
+                  className="border-foreground/20"
+                >
+                  Next
+                  <ChevronRight className="h-4 w-4 ml-1" />
+                </Button>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
 
@@ -283,7 +310,7 @@ const Inventory = () => {
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
-        <AlertDialogContent className="border-2 border-foreground">
+        <AlertDialogContent className="border border-border">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-black">Delete Shoe?</AlertDialogTitle>
             <AlertDialogDescription>

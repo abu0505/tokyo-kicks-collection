@@ -245,7 +245,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[75vw] max-h-[80vh] overflow-y-auto border-2 border-foreground">
+      <DialogContent className="max-w-[75vw] max-h-[80vh] overflow-y-auto border border-border shadow-lg">
         <DialogHeader>
           <DialogTitle className="text-2xl font-black">
             {isEditing ? 'Edit Shoe' : 'Add a New Shoe'}
@@ -263,7 +263,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
             <Label className="font-bold text-sm tracking-wide">SHOE IMAGE</Label>
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-foreground/30 rounded-lg p-8 text-center cursor-pointer hover:border-accent transition-colors relative flex-1 flex flex-col items-center justify-center bg-muted/20"
+              className="border border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-accent transition-colors relative flex-1 flex flex-col items-center justify-center bg-muted/20"
             >
               {imagePreview ? (
                 <div className="relative w-full h-full flex items-center justify-center">
@@ -317,7 +317,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
                   <Input
                     id="name"
                     placeholder="e.g., Air Jordan 1"
-                    className="border-2 border-foreground focus:border-accent"
+                    className="border border-border focus:border-accent"
                     {...register('name')}
                   />
                   {errors.name && (
@@ -331,7 +331,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
                   <Input
                     id="brand"
                     placeholder="e.g., Nike"
-                    className="border-2 border-foreground focus:border-accent"
+                    className="border border-border focus:border-accent"
                     {...register('brand')}
                   />
                   {errors.brand && (
@@ -350,7 +350,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
                     id="price"
                     type="number"
                     placeholder="e.g., 18500"
-                    className="border-2 border-foreground focus:border-accent"
+                    className="border border-border focus:border-accent"
                     {...register('price', { valueAsNumber: true })}
                   />
                   {errors.price && (
@@ -363,7 +363,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
                     value={watch('status')}
                     onValueChange={(value) => setValue('status', value as 'in_stock' | 'sold_out')}
                   >
-                    <SelectTrigger className="border-2 border-foreground">
+                    <SelectTrigger className="border border-border">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -382,7 +382,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
                 <Input
                   id="sizes"
                   placeholder="e.g., 8,9,10,11"
-                  className="border-2 border-foreground focus:border-accent"
+                  className="border border-border focus:border-accent"
                   {...register('sizes')}
                 />
                 <p className="text-xs text-muted-foreground">
@@ -400,7 +400,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
                 type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="col-span-2 border-2 border-foreground font-bold hover:bg-black hover:text-white transition-colors"
+                className="col-span-2 border border-border font-bold hover:bg-black hover:text-white transition-colors"
               >
                 Cancel
               </Button>

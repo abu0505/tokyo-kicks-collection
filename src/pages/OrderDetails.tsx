@@ -268,7 +268,7 @@ const OrderDetails = () => {
             <main className="flex-grow container mx-auto px-4 py-8 md:py-8 max-w-6xl">
                 {/* Breadcrumbs */}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-                    <Link to="/order-history" className="hover:text-foreground">Account</Link>
+                    <Link to="/" className="hover:text-foreground">Home</Link>
                     <ChevronRight className="w-4 h-4" />
                     <Link to="/order-history" className="hover:text-foreground">Orders</Link>
                     <ChevronRight className="w-4 h-4" />
@@ -453,16 +453,7 @@ const OrderDetails = () => {
                                 </div>
                             </div>
 
-                            {/* Need Help Section */}
-                            <div className="mt-8 pt-6 border-t border-gray-100 bg-gray-50 -mx-6 -mb-6 p-6 rounded-b-xl">
-                                <div className="flex gap-3">
-                                    <HelpCircle className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                    <div className="text-xs text-muted-foreground">
-                                        <p className="mb-1">Need help with your order? <a href="#" className="font-bold text-red-500 hover:underline">Contact Support</a></p>
-                                        <p>or view our <a href="#" className="font-bold text-red-500 hover:underline">Return Policy</a>.</p>
-                                    </div>
-                                </div>
-                            </div>
+
                         </div>
 
                     </div>

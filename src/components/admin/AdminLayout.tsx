@@ -1,7 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, ShoppingBag, LogOut, ArrowLeft, Menu } from 'lucide-react';
+import { LayoutDashboard, ShoppingBag, LogOut, ArrowLeft, Menu, Package } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -9,9 +9,10 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 interface AdminLayoutProps {
   children: ReactNode;
+  header?: ReactNode;
 }
 
-const AdminLayout = ({ children }: AdminLayoutProps) => {
+const AdminLayout = ({ children, header }: AdminLayoutProps) => {
   const { user, isAdmin, isLoading, isAdminLoading, signOut } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
 
   const navItems = [
     { path: '/admin', icon: LayoutDashboard, label: 'Dashboard' },
+    { path: '/admin/orders', icon: Package, label: 'Orders' },
     { path: '/admin/inventory', icon: ShoppingBag, label: 'Inventory' },
   ];
 
@@ -115,7 +117,7 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   );
 
   return (
-    <div className="h-screen overflow-hidden bg-background flex flex-col md:flex-row">
+    <div className="h-screen overflow-hidden bg-secondary flex flex-col md:flex-row">
       {/* Mobile Header */}
       <div className="md:hidden border-b border-border p-4 flex items-center justify-between bg-background">
         <div className="flex items-center gap-2">
@@ -140,12 +142,13 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto flex flex-col">
+        {header}
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="p-1 md:p-8"
+          className="p-6 flex-1 bg-secondary/30"
         >
           {children}
         </motion.div>

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import TextLoader from '@/components/TextLoader';
 import { toast } from 'sonner';
 
@@ -46,6 +47,50 @@ const Auth = () => {
     resolver: zodResolver(isLogin ? loginSchema : signupSchema),
   });
 
+  const checkIsAdmin = async (userId: string) => {
+    try {
+      // Use RPC function first
+      const { data, error } = await supabase.rpc('check_is_admin', { check_user_id: userId });
+
+      if (!error && data) return true;
+
+      // Fallback to table check
+      const { data: roleData, error: roleError } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+
+      if (!roleError && roleData) return true;
+
+      return false;
+    } catch (err) {
+      console.error('Error checking admin status:', err);
+      return false;
+    }
+  };
+
+  const handlePostAuth = async (userId: string, isSignup: boolean = false) => {
+    // Check if user is admin
+    const isAdmin = await checkIsAdmin(userId);
+
+    if (isAdmin) {
+      toast.success('Welcome Administrator');
+      navigate('/admin');
+    } else {
+      if (isSignup) {
+        toast.success('Account created! Welcome!');
+        navigate('/');
+      } else {
+        const { data: { user } } = await supabase.auth.getUser();
+        const fullName = user?.user_metadata?.full_name;
+        toast.success(fullName ? `Welcome back, ${fullName}!` : 'Welcome back!');
+        navigate(from, { replace: true });
+      }
+    }
+  };
+
   const onSubmit = async (data: AuthFormData) => {
     setIsSubmitting(true);
     try {
@@ -59,9 +104,10 @@ const Auth = () => {
           }
           return;
         }
-        const fullName = authData.user?.user_metadata?.full_name;
-        toast.success(fullName ? `Welcome back, ${fullName}!` : 'Welcome back!');
-        navigate(from, { replace: true });
+
+        if (authData.user) {
+          await handlePostAuth(authData.user.id);
+        }
       } else {
         const { data: signUpData, error } = await signUp(data.email, data.password, data.fullName || '');
         if (error) {
@@ -74,8 +120,8 @@ const Auth = () => {
         }
 
         // If email confirmation is disabled, we get a session immediately
-        if (signUpData.session) {
-          toast.success('Account created! Welcome!');
+        if (signUpData.session && signUpData.user) {
+          await handlePostAuth(signUpData.user.id, true);
         } else {
           toast.success('Account created! Please check your email to verify.');
           setIsLogin(true);
@@ -92,7 +138,11 @@ const Auth = () => {
     if (error) {
       toast.error(error.message);
     }
+    // Note: Google Sign In redirects away, so we don't need to handle post-auth here usually.
+    // If it's a popup (not typical for this supabase setup usually), we would wait.
+    // Standard Supabase OAuth redirects the whole page.
   };
+
 
   return (
     <motion.div

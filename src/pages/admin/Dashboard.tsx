@@ -87,23 +87,25 @@ const AdminDashboard = () => {
   ];
 
   return (
-    <AdminLayout>
-      <div className="space-y-5">
-        {/* Header */}
-        <div className="flex items-center justify-between px-1">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight">Dashboard Overview</h1>
-            <p className="text-muted-foreground mt-1">
-              Monitor your inventory at a glance.
-            </p>
+    <AdminLayout
+      header={
+        <header className="h-20 shrink-0 bg-white border-b border-border px-8 flex items-center justify-between">
+          <div className="flex flex-col">
+            <h2 className="text-2xl font-bold text-black tracking-tight actions uppercase">Dashboard Overview</h2>
+            <p className="text-xs text-muted-foreground">Monitor your inventory at a glance</p>
           </div>
-          <Link to="/admin/inventory">
-            <Button className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Shoe
-            </Button>
-          </Link>
-        </div>
+          <div className="flex items-center gap-3">
+            <Link to="/admin/inventory">
+              <button className="h-10 px-4 flex items-center justify-center gap-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-bold transition-all shadow-md shadow-accent/30">
+                <Plus className="h-5 w-5" />
+                Add Shoe
+              </button>
+            </Link>
+          </div>
+        </header>
+      }
+    >
+      <div className="space-y-6">
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-1">
@@ -113,7 +115,7 @@ const AdminDashboard = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
-              className="bg-card border-2 border-foreground p-6 transition-colors"
+              className="bg-white border border-border p-6 rounded-2xl shadow-sm transition-colors"
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
@@ -138,7 +140,7 @@ const AdminDashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.4 }}
-          className="bg-card"
+          className="bg-white border border-border rounded-2xl shadow-sm p-6"
         >
           <div className="flex items-center gap-2 mb-2 px-2">
             <Clock className="h-5 w-5 text-muted-foreground" />
@@ -167,14 +169,14 @@ const AdminDashboard = () => {
                   initial={{ opacity: 0, x: -10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, delay: 0.5 + index * 0.05 }}
-                  className="flex items-center gap-4 p-4 bg-secondary/50 border border-foreground/5 hover:bg-secondary transition-colors"
+                  className="flex items-center gap-4 p-4 bg-neutral-50/50 border-b border-border last:border-0 hover:bg-neutral-50 transition-colors"
                 >
                   {/* Shoe Image */}
                   {shoe.image_url ? (
                     <img
                       src={shoe.image_url}
                       alt={shoe.name}
-                      className="w-12 h-12 object-cover rounded"
+                      className="w-12 h-12 object-cover rounded-lg"
                     />
                   ) : (
                     <div className="w-12 h-12 bg-muted rounded flex items-center justify-center text-lg">
@@ -186,7 +188,7 @@ const AdminDashboard = () => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-bold truncate">{shoe.name}</p>
-                      <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded bg-foreground/10 text-muted-foreground">
+                      <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full bg-foreground/10 text-muted-foreground">
                         {getActivityType(shoe)}
                       </span>
                     </div>
@@ -203,7 +205,7 @@ const AdminDashboard = () => {
 
                   {/* Status Badge */}
                   <div
-                    className={`px-2 py-1 text-xs font-bold rounded ${shoe.status === 'in_stock'
+                    className={`px-3 py-1 text-xs font-bold rounded-full ${shoe.status === 'in_stock'
                       ? 'bg-green-500/10 text-green-600 border border-green-500/20'
                       : 'bg-red-500/10 text-red-600 border border-red-500/20'
                       }`}
