@@ -154,51 +154,69 @@ export type Database = {
           address: string
           apartment: string | null
           city: string
-          code: string
-          country: string
           created_at: string | null
+          discount_code: string | null
+          email: string
+          email_newsletter: boolean | null
+          first_name: string
           id: string
-          payment_id: string | null
-          payment_method: string
+          last_name: string
+          order_code: string | null
+          payment_method: string | null
           phone: string
           postal_code: string
+          shipping_cost: number
+          shipping_method: string
           status: string | null
-          total_price: number
-          updated_at: string | null
+          subtotal: number
+          tax: number
+          total: number
           user_id: string
         }
         Insert: {
           address: string
           apartment?: string | null
           city: string
-          code: string
-          country: string
           created_at?: string | null
+          discount_code?: string | null
+          email: string
+          email_newsletter?: boolean | null
+          first_name: string
           id?: string
-          payment_id?: string | null
-          payment_method: string
+          last_name: string
+          order_code?: string | null
+          payment_method?: string | null
           phone: string
           postal_code: string
+          shipping_cost: number
+          shipping_method: string
           status?: string | null
-          total_price: number
-          updated_at?: string | null
+          subtotal: number
+          tax: number
+          total: number
           user_id: string
         }
         Update: {
           address?: string
           apartment?: string | null
           city?: string
-          code?: string
-          country?: string
           created_at?: string | null
+          discount_code?: string | null
+          email?: string
+          email_newsletter?: boolean | null
+          first_name?: string
           id?: string
-          payment_id?: string | null
-          payment_method?: string
+          last_name?: string
+          order_code?: string | null
+          payment_method?: string | null
           phone?: string
           postal_code?: string
+          shipping_cost?: number
+          shipping_method?: string
           status?: string | null
-          total_price?: number
-          updated_at?: string | null
+          subtotal?: number
+          tax?: number
+          total?: number
           user_id?: string
         }
         Relationships: []
@@ -378,7 +396,7 @@ export type Database = {
           name: string
           price: number
           sizes: number[]
-          status: string
+          status: Database["public"]["Enums"]["shoe_status"]
           updated_at: string | null
         }
         Insert: {
@@ -389,7 +407,7 @@ export type Database = {
           name: string
           price: number
           sizes: number[]
-          status?: string
+          status?: Database["public"]["Enums"]["shoe_status"]
           updated_at?: string | null
         }
         Update: {
@@ -400,10 +418,42 @@ export type Database = {
           name?: string
           price?: number
           sizes?: number[]
-          status?: string
+          status?: Database["public"]["Enums"]["shoe_status"]
           updated_at?: string | null
         }
         Relationships: []
+      }
+      shoe_sizes: {
+        Row: {
+          created_at: string
+          id: string
+          quantity: number
+          shoe_id: string
+          size: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          shoe_id: string
+          size: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quantity?: number
+          shoe_id?: string
+          size?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shoe_sizes_shoe_id_fkey"
+            columns: ["shoe_id"]
+            isOneToOne: false
+            referencedRelation: "shoes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -484,6 +534,7 @@ export type UpdateTables<T extends keyof Database["public"]["Tables"]> =
 
 // Convenience types for use throughout the app
 export type DbShoe = Tables<"shoes">
+export type DbShoeSize = Tables<"shoe_sizes">
 export type DbProfile = Tables<"profiles">
 export type DbWishlist = Tables<"wishlists">
 export type DbUserRole = Tables<"user_roles">

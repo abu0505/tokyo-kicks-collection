@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import StarRating from './StarRating';
+import StarRating from '@/components/StarRating';
 import { Button } from '@/components/ui/button';
 import { Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -33,7 +33,7 @@ const ReviewList = ({ shoeId, refreshTrigger }: ReviewListProps) => {
 
       // Use the public view that masks user_id for privacy
       const { data: reviewsData, error: reviewsError } = await supabase
-        .from('reviews_public')
+        .from('reviews_public' as any)
         .select('*')
         .eq('shoe_id', shoeId)
         .order('created_at', { ascending: false });
@@ -44,7 +44,7 @@ const ReviewList = ({ shoeId, refreshTrigger }: ReviewListProps) => {
         return;
       }
 
-      setReviews(reviewsData || []);
+      setReviews((reviewsData as unknown as Review[]) || []);
 
       // Fetch user's own review ID separately (RLS allows viewing own reviews)
       if (user) {
@@ -54,7 +54,7 @@ const ReviewList = ({ shoeId, refreshTrigger }: ReviewListProps) => {
           .eq('shoe_id', shoeId)
           .eq('user_id', user.id)
           .single();
-        
+
         setUserReviewId(userReview?.id || null);
       }
     } catch (err) {

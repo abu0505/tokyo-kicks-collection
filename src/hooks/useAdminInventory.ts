@@ -1,9 +1,13 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { DbShoe } from '@/types/database';
+import { DbShoe, DbShoeSize } from '@/types/database';
+
+export interface ShoeWithSizes extends DbShoe {
+    shoe_sizes: DbShoeSize[];
+}
 
 export interface ShoesResponse {
-    shoes: DbShoe[];
+    shoes: ShoeWithSizes[];
     totalCount: number;
 }
 
@@ -18,7 +22,7 @@ const fetchShoes = async ({ page, pageSize }: UseAdminInventoryOptions): Promise
 
     const { data, count, error } = await supabase
         .from('shoes')
-        .select('*', { count: 'exact' })
+        .select('*, shoe_sizes(*)', { count: 'exact' })
         .order('created_at', { ascending: false })
         .range(from, to);
 
@@ -27,7 +31,7 @@ const fetchShoes = async ({ page, pageSize }: UseAdminInventoryOptions): Promise
     }
 
     return {
-        shoes: (data as DbShoe[]) || [],
+        shoes: (data as unknown as ShoeWithSizes[]) || [],
         totalCount: count || 0,
     };
 };

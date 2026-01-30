@@ -30,6 +30,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import AdminLayout from '@/components/admin/AdminLayout';
 import AddShoeModal from '@/components/admin/AddShoeModal';
 import TextLoader from '@/components/TextLoader';
@@ -37,14 +42,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
 import { formatPrice } from '@/lib/format';
 import { toast } from 'sonner';
-import { useAdminInventory } from '@/hooks/useAdminInventory';
+import { useAdminInventory, ShoeWithSizes } from '@/hooks/useAdminInventory';
 
 const PAGE_SIZE = 10;
 
 const Inventory = () => {
   const queryClient = useQueryClient();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingShoe, setEditingShoe] = useState<DbShoe | null>(null);
+  const [editingShoe, setEditingShoe] = useState<ShoeWithSizes | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
@@ -100,7 +105,7 @@ const Inventory = () => {
     },
   });
 
-  const handleToggleStatus = (shoe: DbShoe) => {
+  const handleToggleStatus = (shoe: ShoeWithSizes) => {
     const newStatus = shoe.status === 'in_stock' ? 'sold_out' : 'in_stock';
     updateStatusMutation.mutate({ id: shoe.id, status: newStatus });
   };
@@ -202,20 +207,39 @@ const Inventory = () => {
                       {formatPrice(shoe.price)}
                     </TableCell>
                     <TableCell>
-                      <div className="flex flex-wrap gap-0.5">
-                        {shoe.sizes.slice(0, 4).map((size) => (
-                          <span
-                            key={size}
-                            className="text-xs bg-secondary px-1.5 py-0.5 rounded"
-                          >
-                            {size}
-                          </span>
-                        ))}
-                        {shoe.sizes.length > 4 && (
-                          <span className="text-xs bg-secondary px-1.5 py-0.5 rounded">
-                            +{shoe.sizes.length - 4}
-                          </span>
-                        )}
+                      <div className="flex flex-col gap-1">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button variant="ghost" className="h-auto p-0 hover:bg-transparent hover:text-foreground justify-start font-normal text-foreground">
+                              <span className="text-sm">
+                                Total Stock: <span className="font-bold">
+                                  {shoe.shoe_sizes?.reduce((acc, curr) => acc + (curr.quantity || 0), 0) || 0}
+                                </span>
+                              </span>
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-56 p-3">
+                            <div className="space-y-2">
+                              <h4 className="font-bold text-sm border-b pb-1 mb-2">Stock Breakdown</h4>
+                              {shoe.shoe_sizes && shoe.shoe_sizes.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  {shoe.shoe_sizes
+                                    .sort((a, b) => a.size - b.size)
+                                    .map((sizeObj) => (
+                                      <div key={sizeObj.id} className="flex justify-between items-center">
+                                        <span className="text-muted-foreground">Size {sizeObj.size}:</span>
+                                        <span className={sizeObj.quantity === 0 ? "text-red-500 font-bold" : "font-bold"}>
+                                          {sizeObj.quantity} left
+                                        </span>
+                                      </div>
+                                    ))}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-muted-foreground">No stock data available.</p>
+                              )}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     </TableCell>
                     <TableCell>

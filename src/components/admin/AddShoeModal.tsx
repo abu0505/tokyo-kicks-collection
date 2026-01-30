@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { useForm } from 'react-hook-form';
+import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Upload, X } from 'lucide-react';
+import { Upload, X, Plus, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -24,13 +24,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
 import { toast } from 'sonner';
 import TextLoader from '../TextLoader';
+import { ShoeWithSizes } from '@/hooks/useAdminInventory';
 
 const shoeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   brand: z.string().min(1, 'Brand is required'),
   price: z.number().min(1, 'Price must be greater than 0'),
   status: z.enum(['in_stock', 'sold_out']),
-  sizes: z.string().min(1, 'At least one size is required'),
+  variants: z.array(
+    z.object({
+      size: z.number().min(1).max(50),
+      quantity: z.number().min(0),
+    })
+  ).min(1, 'At least one size variant is required'),
 });
 
 type ShoeFormData = z.infer<typeof shoeSchema>;
@@ -38,7 +44,7 @@ type ShoeFormData = z.infer<typeof shoeSchema>;
 interface AddShoeModalProps {
   open: boolean;
   onClose: () => void;
-  shoe?: DbShoe | null;
+  shoe?: ShoeWithSizes | null;
 }
 
 const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
@@ -52,6 +58,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
     reset,
@@ -64,8 +71,13 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
       brand: shoe?.brand || '',
       price: shoe?.price || 0,
       status: (shoe?.status as 'in_stock' | 'sold_out') || 'in_stock',
-      sizes: shoe?.sizes?.join(',') || '',
+      variants: shoe?.shoe_sizes?.map(s => ({ size: s.size, quantity: s.quantity || 0 })) || [{ size: 0, quantity: 0 }],
     },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "variants"
   });
 
   // Reset form when shoe changes or modal opens
@@ -77,7 +89,9 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
           brand: shoe.brand,
           price: shoe.price,
           status: shoe.status as 'in_stock' | 'sold_out',
-          sizes: shoe.sizes.join(','),
+          variants: shoe.shoe_sizes && shoe.shoe_sizes.length > 0
+            ? shoe.shoe_sizes.map(s => ({ size: s.size, quantity: s.quantity || 0 }))
+            : [{ size: 0, quantity: 0 }],
         });
         setImagePreview(shoe.image_url);
       } else {
@@ -86,7 +100,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
           brand: '',
           price: 0,
           status: 'in_stock',
-          sizes: '',
+          variants: [{ size: 0, quantity: 0 }],
         });
         setImagePreview(null);
         setImageFile(null);
@@ -184,40 +198,74 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
         }
       }
 
-      const sizes = data.sizes
-        .split(',')
-        .map(s => parseInt(s.trim()))
-        .filter(s => !isNaN(s) && s >= 1 && s <= 50); // Validate range (1-50 for US/EU sizes)
+      // Initial sizes array for the shoes table (will be updated by trigger later, but good to have initial state)
+      // Actually, my plan said I should rely on the trigger. 
+      // But the trigger runs ON CHANGE of shoe_sizes.
+      // So I can insert empty sizes array first, then insert shoe_sizes, which will trigger the update.
+      // Or I can calculate it here for the initial insert to avoiding a flicker if I wanted, but the trigger is safer.
+      // However, strict constraint: "Do NOT remove the sizes column from the shoes table".
+      // The trigger handles the sync. So I can send whatever or empty array to `shoes` table initially.
+      // BUT, `sizes` is often NOT NULL. Let's check schema. `sizes` is `numeric[]`. It might be nullable or default empty.
+      // The schema I saw in `database.ts` says `sizes: number[]`.
 
-      // Validate sizes array has valid entries
-      if (sizes.length === 0 && data.sizes.trim() !== '') {
-        toast.error('Invalid sizes. Please enter numbers between 1 and 50.');
-        return;
-      }
-
+      // Let's create the parent shoe row first.
       const shoeData = {
         name: data.name,
         brand: data.brand,
         price: data.price,
-        status: data.status,
-        sizes,
+        // Status should be calculated based on quantities, but let's trust the logic/user input for now or let the trigger override it.
+        // Actually, trigger will update status too.
+
         image_url: imageUrl,
         updated_at: new Date().toISOString(),
       };
 
-      if (isEditing && shoe) {
+      let shoeId = shoe?.id;
+
+      if (isEditing && shoeId) {
         const { error } = await supabase
           .from('shoes')
           .update(shoeData)
-          .eq('id', shoe.id);
+          .eq('id', shoeId);
 
         if (error) throw error;
       } else {
-        const { error } = await supabase
+        const { data: newShoe, error } = await supabase
           .from('shoes')
-          .insert([shoeData]);
+          .insert([{ ...shoeData, sizes: [] }]) // Initialize with empty sizes, trigger will populate
+          .select('id')
+          .single();
 
         if (error) throw error;
+        shoeId = newShoe.id;
+      }
+
+      if (!shoeId) throw new Error("Failed to get shoe ID");
+
+      // Now handle shoe_sizes
+      // First, delete existing
+      const { error: deleteError } = await supabase
+        .from('shoe_sizes')
+        .delete()
+        .eq('shoe_id', shoeId);
+
+      if (deleteError) throw deleteError;
+
+      // Filter out invalid variants
+      const validVariants = data.variants.filter(v => v.size > 0);
+
+      if (validVariants.length > 0) {
+        const { error: insertError } = await supabase
+          .from('shoe_sizes')
+          .insert(
+            validVariants.map(v => ({
+              shoe_id: shoeId!, // asserted because we entered the check
+              size: v.size,
+              quantity: v.quantity
+            }))
+          );
+
+        if (insertError) throw insertError;
       }
     },
     onSuccess: () => {
@@ -247,7 +295,8 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-[75vw] max-h-[80vh] overflow-y-auto border border-border shadow-lg">
+      {/* Increased width to accommodate new inputs */}
+      <DialogContent className="max-w-[85vw] md:max-w-4xl max-h-[85vh] overflow-y-auto border border-border shadow-lg scrollbar-hide">
         <DialogHeader>
           <DialogTitle className="text-2xl font-black">
             {isEditing ? 'Edit Shoe' : 'Add a New Shoe'}
@@ -259,20 +308,20 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
           )}
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 sm:grid-cols-12 gap-6 items-stretch">
+        <form onSubmit={handleSubmit(onSubmit)} className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
           {/* Left Column: Image Upload */}
-          <div className="sm:col-span-6 flex flex-col space-y-2">
+          <div className="md:col-span-5 flex flex-col space-y-2 h-full">
             <Label className="font-bold text-sm tracking-wide">SHOE IMAGE</Label>
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-accent transition-colors relative flex-1 flex flex-col items-center justify-center bg-muted/20"
+              className="border border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-accent transition-colors relative flex-grow min-h-[300px] flex flex-col items-center justify-center bg-muted/20"
             >
               {imagePreview ? (
                 <div className="relative w-full h-full flex items-center justify-center">
                   <img
                     src={imagePreview}
                     alt="Preview"
-                    className="max-w-full max-h-full object-contain rounded"
+                    className="max-w-full max-h-[400px] object-contain rounded"
                   />
                   <button
                     type="button"
@@ -308,96 +357,136 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
           </div>
 
           {/* Right Column: Input Fields */}
-          <div className="sm:col-span-6 flex flex-col">
-            <div className="space-y-6">
-              {/* Name & Brand Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name" className="font-bold text-sm tracking-wide">
-                    NAME
-                  </Label>
-                  <Input
-                    id="name"
-                    placeholder="e.g., Air Jordan 1"
-                    className="border border-border focus:border-accent"
-                    {...register('name')}
-                  />
-                  {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="brand" className="font-bold text-sm tracking-wide">
-                    BRAND
-                  </Label>
-                  <Input
-                    id="brand"
-                    placeholder="e.g., Nike"
-                    className="border border-border focus:border-accent"
-                    {...register('brand')}
-                  />
-                  {errors.brand && (
-                    <p className="text-sm text-destructive">{errors.brand.message}</p>
-                  )}
-                </div>
-              </div>
+          <div className="md:col-span-7 flex flex-col space-y-6">
 
-              {/* Price & Status Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="price" className="font-bold text-sm tracking-wide">
-                    PRICE (₹)
-                  </Label>
-                  <Input
-                    id="price"
-                    type="number"
-                    placeholder="e.g., 18500"
-                    className="border border-border focus:border-accent"
-                    {...register('price', { valueAsNumber: true })}
-                  />
-                  {errors.price && (
-                    <p className="text-sm text-destructive">{errors.price.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-bold text-sm tracking-wide">STATUS</Label>
-                  <Select
-                    value={watch('status')}
-                    onValueChange={(value) => setValue('status', value as 'in_stock' | 'sold_out')}
-                  >
-                    <SelectTrigger className="border border-border">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="in_stock">In Stock</SelectItem>
-                      <SelectItem value="sold_out">Sold Out</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Sizes */}
+            {/* Name & Brand */}
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="sizes" className="font-bold text-sm tracking-wide">
-                  SIZES
+                <Label htmlFor="name" className="font-bold text-sm tracking-wide">
+                  NAME
                 </Label>
                 <Input
-                  id="sizes"
-                  placeholder="e.g., 8,9,10,11"
+                  id="name"
+                  placeholder="e.g., Air Jordan 1"
                   className="border border-border focus:border-accent"
-                  {...register('sizes')}
+                  {...register('name')}
                 />
-                <p className="text-xs text-muted-foreground">
-                  Enter available sizes, separated by commas.
-                </p>
-                {errors.sizes && (
-                  <p className="text-sm text-destructive">{errors.sizes.message}</p>
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="brand" className="font-bold text-sm tracking-wide">
+                  BRAND
+                </Label>
+                <Input
+                  id="brand"
+                  placeholder="e.g., Nike"
+                  className="border border-border focus:border-accent"
+                  {...register('brand')}
+                />
+                {errors.brand && (
+                  <p className="text-sm text-destructive">{errors.brand.message}</p>
                 )}
               </div>
             </div>
 
+            {/* Price & Status */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="price" className="font-bold text-sm tracking-wide">
+                  PRICE (₹)
+                </Label>
+                <Input
+                  id="price"
+                  type="number"
+                  placeholder="e.g., 18500"
+                  className="border border-border focus:border-accent"
+                  {...register('price', { valueAsNumber: true })}
+                />
+                {errors.price && (
+                  <p className="text-sm text-destructive">{errors.price.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label className="font-bold text-sm tracking-wide">STATUS</Label>
+                <Select
+                  value={watch('status')}
+                  onValueChange={(value) => setValue('status', value as 'in_stock' | 'sold_out')}
+                >
+                  <SelectTrigger className="border border-border">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="in_stock">In Stock</SelectItem>
+                    <SelectItem value="sold_out">Sold Out</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Stock Manager */}
+            <div className="space-y-3 border rounded-lg p-4 bg-secondary/10">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="font-bold text-sm tracking-wide uppercase">Stock & Sizes</Label>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => append({ size: 0, quantity: 0 })}
+                  className="h-8 gap-1 text-xs font-bold"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add Variant
+                </Button>
+              </div>
+
+              <div className="space-y-2 max-h-[200px] overflow-y-auto p-1 custom-scrollbar">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="flex gap-3 items-start">
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs text-muted-foreground">Size</Label>
+                      <Input
+                        type="number"
+                        placeholder="Size"
+                        className="h-9"
+                        {...register(`variants.${index}.size`, { valueAsNumber: true })}
+                      />
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <Label className="text-xs text-muted-foreground">Quantity</Label>
+                      <Input
+                        type="number"
+                        placeholder="Qty"
+                        className="h-9"
+                        {...register(`variants.${index}.quantity`, { valueAsNumber: true })}
+                      />
+                    </div>
+                    <div className="flex-none pt-6">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                        onClick={() => remove(index)}
+                        disabled={fields.length === 1 && index === 0}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {errors.variants && (
+                <p className="text-sm text-destructive mt-2">{errors.variants.message}</p>
+              )}
+              {errors.variants?.root && (
+                <p className="text-sm text-destructive mt-2">{errors.variants.root.message}</p>
+              )}
+            </div>
+
             {/* Actions */}
-            <div className="grid grid-cols-6 gap-3 pt-6">
+            <div className="grid grid-cols-6 gap-3 pt-4 mt-auto">
               <Button
                 type="button"
                 variant="outline"
