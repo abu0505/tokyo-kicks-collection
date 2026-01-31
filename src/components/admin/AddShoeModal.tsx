@@ -267,6 +267,31 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
 
         if (insertError) throw insertError;
       }
+
+      // Cleanup old image if existing one was replaced
+      if (isEditing && imageFile && shoe?.image_url) {
+        try {
+          const oldUrl = shoe.image_url;
+          // Extract path assuming standard Supabase URL structure
+          // Public URL: .../storage/v1/object/public/shoe-images/path/to/file
+          // Bucket: shoe-images
+          // We need just 'path/to/file'
+          const path = oldUrl.split('/shoe-images/')[1];
+          if (path) {
+            const { error: removeError } = await supabase.storage
+              .from('shoe-images')
+              .remove([decodeURIComponent(path)]);
+
+            if (removeError) {
+              console.error('Failed to remove old image:', removeError);
+            } else {
+              console.log('Old image removed successfully');
+            }
+          }
+        } catch (err) {
+          console.error('Error cleaning up old image:', err);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-shoes'] });

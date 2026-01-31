@@ -25,7 +25,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useReviews } from '@/hooks/useReviews';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { DbShoe } from '@/types/database';
+import { DbShoe, DbShoeSize } from '@/types/database';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,7 +44,7 @@ const ProductDetail = () => {
 
       const { data, error } = await supabase
         .from('shoes')
-        .select('*')
+        .select('*, shoe_sizes(size, quantity)')
         .eq('id', id)
         .single();
 
@@ -53,7 +53,15 @@ const ProductDetail = () => {
         return null;
       }
 
-      const dbShoe = data as DbShoe;
+      // Type assertion for the joined data
+      const dbShoe = data as DbShoe & { shoe_sizes: DbShoeSize[] };
+
+      // Map inventory: Size -> Quantity
+      const inventory: { [size: number]: number } = {};
+      dbShoe.shoe_sizes.forEach((item: any) => {
+        inventory[item.size] = item.quantity;
+      });
+
       return {
         id: dbShoe.id,
         name: dbShoe.name,
@@ -62,7 +70,8 @@ const ProductDetail = () => {
         image: dbShoe.image_url || '',
         sizes: dbShoe.sizes,
         status: dbShoe.status,
-        createdAt: new Date(dbShoe.created_at)
+        createdAt: new Date(dbShoe.created_at),
+        inventory
       } as Shoe;
     },
     enabled: !!id,
@@ -125,6 +134,13 @@ const ProductDetail = () => {
     if (!shoe) return;
     if (!selectedSize) {
       toast.error('Please select a size first');
+      return;
+    }
+
+    // Check stock
+    const quantity = shoe.inventory?.[selectedSize] ?? 0;
+    if (quantity <= 0) {
+      toast.error('This size is out of stock');
       return;
     }
 
@@ -253,20 +269,33 @@ const ProductDetail = () => {
                 </p>
               )}
               <div className="grid grid-cols-6 md:grid-cols-8 lg:flex lg:flex-wrap gap-2 md:gap-3">
-                {shoe.sizes.map((size) => (
-                  <button
-                    key={size}
-                    onClick={() => !isSoldOut && setSelectedSize(size)}
-                    disabled={isSoldOut}
-                    className={`w-full lg:w-10 h-9 md:h-10 border-2 font-bold text-sm md:text-lg transition-all ${selectedSize === size
-                      ? 'border-black bg-black text-white'
-                      : 'border-foreground hover:border-black hover:text-black'
-                      } ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-                  >
-                    {size}
-                  </button>
-                ))}
+                {shoe.sizes.map((size) => {
+                  const quantity = shoe.inventory?.[size] ?? 0;
+                  const isSizeOutOfStock = quantity <= 0;
+
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => !isSoldOut && setSelectedSize(size)}
+                      disabled={isSoldOut}
+                      className={`w-full lg:w-10 h-9 md:h-10 border-2 font-bold text-sm md:text-lg transition-all ${selectedSize === size
+                        ? 'border-black bg-black text-white'
+                        : 'border-foreground hover:border-black hover:text-black'
+                        } ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'} ${isSizeOutOfStock && selectedSize !== size ? 'bg-secondary text-muted-foreground' : ''}`}
+                      title={isSizeOutOfStock ? "Out of Stock" : `${quantity} left`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* Out of Stock Message */}
+              {selectedSize && (shoe.inventory?.[selectedSize] ?? 0) <= 0 && (
+                <p className="text-red-600 font-bold text-sm mt-3 animate-pulse">
+                  ⚠️ Size {selectedSize} is currently out of stock
+                </p>
+              )}
             </div>
 
             {/* Price */}
@@ -278,14 +307,14 @@ const ProductDetail = () => {
             <div className="flex gap-3 mb-6 md:mb-8">
               <Button
                 onClick={handleAddToCart}
-                disabled={isSoldOut}
-                className={`flex-1 h-12 md:h-14 text-sm md:text-lg font-bold transition-all ${isSoldOut
+                disabled={isSoldOut || (selectedSize !== null && (shoe.inventory?.[selectedSize] ?? 0) <= 0)}
+                className={`flex-1 h-12 md:h-14 text-sm md:text-lg font-bold transition-all ${isSoldOut || (selectedSize !== null && (shoe.inventory?.[selectedSize] ?? 0) <= 0)
                   ? 'bg-muted text-muted-foreground cursor-not-allowed'
                   : 'bg-primary text-primary-foreground hover:bg-primary/90 tokyo-shadow hover:-translate-y-1 hover:translate-x-1'
                   }`}
               >
                 <ShoppingCart className="mr-2 h-4 w-4 md:h-5 md:w-5" />
-                {isSoldOut ? 'SOLD OUT' : 'ADD TO CART'}
+                {isSoldOut ? 'SOLD OUT' : (selectedSize !== null && (shoe.inventory?.[selectedSize] ?? 0) <= 0) ? 'OUT OF STOCK' : 'ADD TO CART'}
               </Button>
               <Button
                 onClick={handleWishlistClick}

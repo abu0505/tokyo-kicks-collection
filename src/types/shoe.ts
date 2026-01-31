@@ -7,6 +7,7 @@ export interface Shoe {
   sizes: number[];
   status: 'in_stock' | 'sold_out';
   createdAt: Date;
+  inventory?: { [size: number]: number };
 }
 
 export interface WishlistItem {

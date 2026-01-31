@@ -174,50 +174,40 @@ const Payment = () => {
         setIsSubmitting(true);
 
         try {
-            // Create order
-            const { data: order, error: orderError } = await supabase
-                .from("orders")
-                .insert({
-                    user_id: user.id,
+            // Prepare payload for RPC
+            const rpcPayload = {
+                p_user_id: user.id,
+                p_payment_method: paymentMethod,
+                p_shipping_address: {
                     email: shippingInfo.email,
-                    first_name: shippingInfo.firstName,
-                    last_name: shippingInfo.lastName,
+                    firstName: shippingInfo.firstName,
+                    lastName: shippingInfo.lastName,
                     address: shippingInfo.address,
                     apartment: shippingInfo.apartment || null,
                     city: shippingInfo.city,
-                    postal_code: shippingInfo.postalCode,
+                    postalCode: shippingInfo.postalCode,
                     phone: shippingInfo.phone,
-                    shipping_method: shippingInfo.shippingMethod,
-                    shipping_cost: shippingCost,
+                    shippingMethod: shippingInfo.shippingMethod,
+                    emailNewsletter: shippingInfo.emailNewsletter,
+                    // shippingCost is passed as separate arg, but keeping it here for consistency if needed in future
+                },
+                p_items: cartItems.map(item => ({
+                    shoeId: item.shoeId,
+                    size: item.size,
+                    quantity: item.quantity,
+                    color: item.color || "Default",
+                    price: item.price
+                })),
+                p_subtotal: subtotal,
+                p_shipping_cost: shippingCost,
+                p_total: total,
+                p_discount_code: couponDetails?.code || null
+            };
 
-                    subtotal: subtotal,
-                    tax: 0, // Tax removed
-                    total: total,
-                    discount_code: couponDetails?.code || null,
-                    email_newsletter: shippingInfo.emailNewsletter,
-                    payment_method: paymentMethod,
-                    status: "pending",
-                })
-                .select("id")
-                .single();
+            // Call the RPC function
+            const { data: orderId, error: rpcError } = await supabase.rpc('process_order', rpcPayload);
 
-            if (orderError) throw orderError;
-
-            // Create order items
-            const orderItems = cartItems.map((item) => ({
-                order_id: order.id,
-                shoe_id: item.shoeId,
-                quantity: item.quantity,
-                size: item.size,
-                color: item.color || "Default",
-                price: item.price,
-            }));
-
-            const { error: itemsError } = await supabase
-                .from("order_items")
-                .insert(orderItems);
-
-            if (itemsError) throw itemsError;
+            if (rpcError) throw rpcError;
 
             // Save payment method if requested
             if (savePaymentMethod && paymentMethod === "card") {
@@ -275,19 +265,6 @@ const Payment = () => {
                 console.error("Error saving address:", addressError);
             }
 
-            // Update coupon usage if a coupon was used
-            if (couponDetails?.code) {
-                try {
-                    // @ts-ignore
-                    await supabase.rpc('increment_coupon_usage', {
-                        coupon_code: couponDetails.code
-                    });
-                } catch (couponError) {
-                    console.error("Error updating coupon usage:", couponError);
-                    // Don't block order completion for this
-                }
-            }
-
             // Clear the coupon explicitly
             removeCoupon();
 
@@ -298,7 +275,9 @@ const Payment = () => {
             navigate("/");
         } catch (error: any) {
             console.error("Error creating order:", error);
-            toast.error(error.message || "Failed to place order. Please try again.");
+            // Handle specific RPC errors (e.g. stock, coupon)
+            const errorMessage = error.message || "Failed to place order. Please try again.";
+            toast.error(errorMessage);
         } finally {
             setIsSubmitting(false);
         }

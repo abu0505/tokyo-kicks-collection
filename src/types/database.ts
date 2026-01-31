@@ -514,6 +514,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      process_order: {
+        Args: {
+          p_user_id: string
+          p_payment_method: string
+          p_shipping_address: Json
+          p_items: Json
+          p_subtotal: number
+          p_shipping_cost: number
+          p_total: number
+          p_discount_code: string | null
+        }
+        Returns: string
+      }
     }
     Enums: {
       app_role: "admin" | "customer"

@@ -226,6 +226,33 @@ const OrderDetails = () => {
         setReviewModalOpen(true);
     };
 
+    const [isCancelling, setIsCancelling] = useState(false);
+
+    const handleCancelOrder = async () => {
+        if (!order) return;
+
+        // Confirm cancellation
+        if (!window.confirm("Are you sure you want to cancel this order? This action cannot be undone.")) {
+            return;
+        }
+
+        setIsCancelling(true);
+        try {
+            const { error } = await supabase.rpc('cancel_order' as any, { p_order_id: order.id });
+
+            if (error) throw error;
+
+            toast.success("Order cancelled successfully");
+            // Refresh order details
+            window.location.reload();
+        } catch (error: any) {
+            console.error("Error cancelling order:", error);
+            toast.error(error.message || "Failed to cancel order");
+        } finally {
+            setIsCancelling(false);
+        }
+    };
+
     if (authLoading || isLoading) {
         return (
             <div className="min-h-screen bg-[#f9fafb] text-foreground flex flex-col font-sans">
@@ -331,6 +358,17 @@ const OrderDetails = () => {
                         >
                             {isGeneratingInvoice ? "Generating..." : "View Invoice"}
                         </Button>
+
+                        {order.status === 'pending' && (
+                            <Button
+                                variant="outline"
+                                onClick={handleCancelOrder}
+                                disabled={isCancelling}
+                                className="ml-4 h-auto font-bold text-sm text-red-600 border-red-200 hover:bg-red-50 hover:text-red-700 hover:border-red-300"
+                            >
+                                {isCancelling ? "Cancelling..." : "Cancel Order"}
+                            </Button>
+                        )}
                     </div>
                 </div>
 
