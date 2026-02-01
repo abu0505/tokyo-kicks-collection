@@ -107,7 +107,7 @@ const Header = () => {
           </div>
 
           {/* Center: Logo */}
-          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
             <Link to="/" className="flex items-center gap-2">
               <img src="/logo.png" alt="Tokyo Shoes" className="h-8 md:h-[46px] w-auto" />
             </Link>
@@ -239,17 +239,6 @@ const Header = () => {
 
           {/* Mobile Actions */}
           <div className="flex md:hidden items-center gap-2">
-            {/* Cart Icon - Mobile - Only for logged in users */}
-            {user && (
-              <Link to="/cart" className="relative p-2">
-                <ShoppingCart className="w-5 h-5" />
-                {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-accent text-accent-foreground text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Link>
-            )}
 
             {/* Wishlist Icon */}
             <Link to="/wishlist" className="relative p-2">
@@ -314,16 +303,6 @@ const Header = () => {
                   </Link>
                   {user && (
                     <Link
-                      to="/order-history"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                    >
-                      <Package className="w-5 h-5" />
-                      ORDER HISTORY
-                    </Link>
-                  )}
-                  {user && (
-                    <Link
                       to="/cart"
                       onClick={() => setMobileMenuOpen(false)}
                       className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
@@ -335,6 +314,16 @@ const Header = () => {
                           {cartCount}
                         </span>
                       )}
+                    </Link>
+                  )}
+                  {user && (
+                    <Link
+                      to="/order-history"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                    >
+                      <Package className="w-5 h-5" />
+                      ORDER HISTORY
                     </Link>
                   )}
 

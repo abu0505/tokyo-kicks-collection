@@ -67,6 +67,13 @@ const ProductImageZoomV2 = ({ src, alt, className = '' }: ProductImageZoomV2Prop
         setIsImageLoaded(true);
     };
 
+    // Check for cached images on mount
+    useEffect(() => {
+        if (imageRef.current && imageRef.current.complete) {
+            setIsImageLoaded(true);
+        }
+    }, [src]);
+
     return (
         <div className={`relative ${className}`}>
             {/* Main Image Container */}
@@ -86,6 +93,7 @@ const ProductImageZoomV2 = ({ src, alt, className = '' }: ProductImageZoomV2Prop
                     alt={alt}
                     className="w-full h-full object-cover"
                     onLoad={handleImageLoad}
+                    loading="eager"
                 />
 
                 {/* Zoom Lens - Circular overlay that follows cursor */}

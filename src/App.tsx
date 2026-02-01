@@ -15,6 +15,7 @@ import AdminOrders from "./pages/admin/Orders";
 import AdminOrderDetails from "./pages/admin/AdminOrderDetails";
 import AdminCoupons from "./pages/admin/Coupons";
 import Inventory from "./pages/admin/Inventory";
+import AddEditShoe from "./pages/admin/AddEditShoe";
 import Wishlist from "./pages/Wishlist";
 import NotFound from "./pages/NotFound";
 import Contact from "./pages/Contact";
@@ -51,6 +52,8 @@ const App = () => (
                 <Route path="/admin/orders/:orderId" element={<AdminOrderDetails />} />
                 <Route path="/admin/coupons" element={<AdminCoupons />} />
                 <Route path="/admin/inventory" element={<Inventory />} />
+                <Route path="/admin/inventory/add" element={<AddEditShoe />} />
+                <Route path="/admin/inventory/edit/:id" element={<AddEditShoe />} />
                 <Route path="/wishlist" element={<Wishlist />} />
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/cart" element={<Cart />} />

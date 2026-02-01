@@ -4,6 +4,7 @@ export interface Shoe {
   brand: string;
   price: number;
   image: string;
+  additionalImages?: string[];
   sizes: number[];
   status: 'in_stock' | 'sold_out';
   createdAt: Date;

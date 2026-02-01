@@ -86,9 +86,14 @@ const RecentlyViewedDropdown = ({
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className="recently-viewed-popover w-80 p-0 border-2 border-foreground bg-background"
+        className="recently-viewed-popover p-0 border-2 border-foreground bg-background"
         align="start"
         sideOffset={8}
+        style={{
+          top: '0px',
+          transform: 'translate(150px, 60px)',
+          minWidth: 'max-content'
+        }}
       >
         <div className="p-3 border-b-2 border-foreground flex items-center justify-between">
           <span className="text-sm font-bold tracking-wide">RECENTLY VIEWED</span>

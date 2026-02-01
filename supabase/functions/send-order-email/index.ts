@@ -22,6 +22,9 @@ interface OrderRecord {
   status: string;
   created_at: string;
   shipping_cost?: number;
+  subtotal: number;
+  tax?: number;
+  discount_code?: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -66,6 +69,12 @@ const handler = async (req: Request): Promise<Response> => {
     const shortOrderId = `TK-${record.id.slice(0, 5).toUpperCase()}`;
     const orderDate = new Date(record.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
     const formattedTotal = `₹${record.total.toLocaleString('en-IN')}`;
+
+    // Calculate discount if applicable
+    // total = subtotal + tax + shipping - discount
+    // => discount = subtotal + tax + shipping - total
+    const discountAmount = (record.subtotal + (record.tax || 0) + (record.shipping_cost || 0)) - record.total;
+    const hasDiscount = discountAmount > 1; // Allow for small floating point diffs, or just > 0
 
     // 5. Generate HTML
     // @ts-ignore: Type checking
@@ -184,6 +193,12 @@ const handler = async (req: Request): Promise<Response> => {
                         <td style="padding-bottom: 16px; color: #666; font-size: 14px; border-bottom: 1px dotted #eee;">${(record.shipping_cost || 0) > 0 ? 'Express Shipping' : 'Standard Shipping'}</td>
                         <td style="padding-bottom: 16px; text-align: right; color: #111; font-weight: 600; font-size: 14px; border-bottom: 1px dotted #eee;">${(record.shipping_cost || 0) > 0 ? '₹' + record.shipping_cost : 'Free'}</td>
                       </tr>
+                      ${hasDiscount ? `
+                      <tr>
+                        <td style="padding-bottom: 16px; color: #16a34a; font-size: 14px; border-bottom: 1px dotted #eee;">Discount ${record.discount_code ? `(${record.discount_code})` : ''}</td>
+                        <td style="padding-bottom: 16px; text-align: right; color: #16a34a; font-weight: 600; font-size: 14px; border-bottom: 1px dotted #eee;">-₹${Math.round(discountAmount).toLocaleString('en-IN')}</td>
+                      </tr>
+                      ` : ''}
                       <tr>
                         <td style="padding-top: 16px; font-size: 18px; font-weight: 800; color: #111;">Total</td>
                         <td style="padding-top: 16px; text-align: right; font-size: 18px; font-weight: 800; color: #111;">${formattedTotal}</td>

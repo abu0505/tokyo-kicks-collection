@@ -1,5 +1,6 @@
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Plus, MoreVertical, Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -36,7 +37,7 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import AdminLayout from '@/components/admin/AdminLayout';
-import AddShoeModal from '@/components/admin/AddShoeModal';
+// AddShoeModal removed
 import TextLoader from '@/components/TextLoader';
 import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
@@ -47,9 +48,9 @@ import { useAdminInventory, ShoeWithSizes } from '@/hooks/useAdminInventory';
 const PAGE_SIZE = 10;
 
 const Inventory = () => {
+  const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingShoe, setEditingShoe] = useState<ShoeWithSizes | null>(null);
+  // isAddModalOpen and editingShoe state removed
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
@@ -120,7 +121,7 @@ const Inventory = () => {
           </div>
           <div className="flex items-center gap-3">
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => navigate('/admin/inventory/add')}
               className="h-10 px-4 flex items-center justify-center gap-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-bold transition-all shadow-md shadow-accent/30"
             >
               <Plus className="h-5 w-5" />
@@ -267,7 +268,7 @@ const Inventory = () => {
                               {shoe.status === 'in_stock' ? 'Mark as Sold Out' : 'Mark as In Stock'}
                             </span>
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setEditingShoe(shoe)}>
+                          <DropdownMenuItem onClick={() => navigate(`/admin/inventory/edit/${shoe.id}`)}>
                             <Pencil className="mr-2 h-4 w-4" />
                             Edit Shoe
                           </DropdownMenuItem>
@@ -322,15 +323,6 @@ const Inventory = () => {
         </motion.div>
       </div>
 
-      {/* Add/Edit Modal */}
-      <AddShoeModal
-        open={isAddModalOpen || !!editingShoe}
-        onClose={() => {
-          setIsAddModalOpen(false);
-          setEditingShoe(null);
-        }}
-        shoe={editingShoe}
-      />
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>

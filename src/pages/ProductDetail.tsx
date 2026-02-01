@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw, ShoppingCart } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,8 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const [selectedSize, setSelectedSize] = useState<number | null>(null);
   const [reviewRefreshTrigger, setReviewRefreshTrigger] = useState(0);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0); // State for carousel
+
   const { addToRecentlyViewed } = useRecentlyViewed();
   const { wishlistIds, toggleWishlist, isInWishlist } = useWishlist();
   const { addToCart } = useCart();
@@ -59,9 +61,13 @@ const ProductDetail = () => {
 
       // Map inventory: Size -> Quantity
       const inventory: { [size: number]: number } = {};
-      dbShoe.shoe_sizes.forEach((item: any) => {
-        inventory[item.size] = item.quantity;
-      });
+
+      if (dbShoe.shoe_sizes && Array.isArray(dbShoe.shoe_sizes)) {
+        dbShoe.shoe_sizes.forEach((item: any) => {
+          inventory[item.size] = item.quantity;
+        });
+      }
+
 
       return {
         id: dbShoe.id,
@@ -69,6 +75,7 @@ const ProductDetail = () => {
         brand: dbShoe.brand,
         price: dbShoe.price,
         image: dbShoe.image_url || '',
+        additionalImages: dbShoe.additional_images || [], // Map additional images
         sizes: dbShoe.sizes,
         status: dbShoe.status,
         createdAt: new Date(dbShoe.created_at),
@@ -91,6 +98,11 @@ const ProductDetail = () => {
       addToRecentlyViewed(shoe.id);
     }
   }, [shoe?.id, addToRecentlyViewed]);
+
+  // Reset image index when shoe changes
+  useEffect(() => {
+    setCurrentImageIndex(0);
+  }, [id]);
 
   if (isLoading) {
     return (
@@ -123,6 +135,27 @@ const ProductDetail = () => {
   const isNew = isNewArrival(shoe);
   const isSoldOut = shoe.status === 'sold_out';
 
+  // Combine main image and additional images for the carousel
+  const allImages = [shoe.image, ...(shoe.additionalImages || [])].filter(Boolean);
+  const currentImage = allImages[currentImageIndex] || '';
+
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
+  };
+
+  // Preload all images for better performance
+  useEffect(() => {
+    allImages.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+  }, [allImages]);
+
+
   const handleWishlistClick = () => {
     toggleWishlist(shoe.id, shoe.name);
   };
@@ -152,7 +185,7 @@ const ProductDetail = () => {
       image: shoe.image,
       quantity: 1,
       size: selectedSize,
-      color: 'Default', // Adding default color as it's not in the shoe type yet explicitly
+      color: 'Default',
       brand: shoe.brand
     });
   };
@@ -205,46 +238,125 @@ const ProductDetail = () => {
         </Button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
-          {/* Image Section with Zoom */}
-          <div className="relative">
-            <div className="aspect-square border-2 border-foreground bg-secondary">
-              <ProductImageZoomV2
-                src={shoe.image}
-                alt={shoe.name}
-                className="w-full h-full"
-              />
+          {/* Image Section with Gallery */}
+          <div className="flex flex-col-reverse md:flex-row gap-4 w-full">
+            {/* Thumbnails - Desktop Only */}
+            <div className="hidden md:flex flex-col gap-4 w-20 lg:w-24 shrink-0 h-fit max-h-[600px] overflow-y-auto pr-1">
+              {allImages.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => setCurrentImageIndex(idx)}
+                  className={`relative aspect-square w-full rounded-md overflow-hidden border-2 transition-all ${currentImageIndex === idx
+                    ? 'border-black opacity-100 ring-1 ring-black'
+                    : 'border-transparent opacity-70 hover:opacity-100 hover:border-gray-300'
+                    }`}
+                >
+                  <img
+                    src={img}
+                    alt={`View ${idx + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </button>
+              ))}
             </div>
 
-            {/* Badges */}
-            <div className="absolute top-3 md:top-6 left-3 md:left-6 flex flex-col gap-2 pointer-events-none">
-              {isNew && (
-                <Badge className="bg-accent text-accent-foreground font-bold px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm">
-                  NEW ARRIVAL
-                </Badge>
-              )}
-            </div>
+            {/* Main Image Display */}
+            <div className="relative group flex-1">
+              <div className="aspect-square border-2 border-foreground bg-secondary relative overflow-hidden rounded-lg">
+                {/* Animated Image Transition */}
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={currentImageIndex}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="w-full h-full"
+                  >
+                    <ProductImageZoomV2
+                      src={currentImage}
+                      alt={`${shoe.name} - View ${currentImageIndex + 1}`}
+                      className="w-full h-full"
+                    />
+                  </motion.div>
+                </AnimatePresence>
 
-            {/* Action Buttons */}
-            <div className="absolute top-3 md:top-6 right-3 md:right-6 flex flex-col gap-2">
-              <Button
-                size="icon"
-                variant="secondary"
-                onClick={handleWishlistClick}
-                className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-foreground transition-all ${isWishlisted
-                  ? 'bg-accent text-accent-foreground hover:bg-accent/90'
-                  : 'bg-background hover:bg-accent hover:text-accent-foreground'
-                  }`}
-              >
-                <Heart className={`h-4 w-4 md:h-5 md:w-5 ${isWishlisted ? 'fill-current' : ''}`} />
-              </Button>
-              <Button
-                size="icon"
-                variant="secondary"
-                onClick={handleShare}
-                className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-foreground bg-background hover:bg-foreground hover:text-background transition-all"
-              >
-                <Share2 className="h-4 w-4 md:h-5 md:w-5" />
-              </Button>
+                {/* Mobile Carousel Controls */}
+                <div className="md:hidden">
+                  {allImages.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          prevImage();
+                        }}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-md z-10 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                        aria-label="Previous image"
+                      >
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          nextImage();
+                        }}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-black p-2 rounded-full shadow-md z-10 opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-30"
+                        aria-label="Next image"
+                      >
+                        <ChevronRight className="w-6 h-6" />
+                      </button>
+
+                      {/* Pagination Dots */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                        {allImages.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentImageIndex(idx);
+                            }}
+                            className={`w-2 h-2 rounded-full transition-all shadow-sm ${currentImageIndex === idx ? 'bg-black w-4' : 'bg-white/70 hover:bg-white'
+                              }`}
+                            aria-label={`Go to image ${idx + 1}`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+
+              {/* Badges */}
+              <div className="absolute top-3 md:top-6 left-3 md:left-6 flex flex-col gap-2 pointer-events-none z-20">
+                {isNew && (
+                  <Badge className="bg-accent text-accent-foreground font-bold px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm">
+                    NEW ARRIVAL
+                  </Badge>
+                )}
+              </div>
+
+              {/* Action Buttons (Wishlist/Share) */}
+              <div className="absolute top-3 md:top-6 right-3 md:right-6 flex flex-col gap-2 z-20">
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={handleWishlistClick}
+                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-foreground transition-all ${isWishlisted
+                    ? 'bg-accent text-accent-foreground hover:bg-accent/90'
+                    : 'bg-background hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                >
+                  <Heart className={`h-4 w-4 md:h-5 md:w-5 ${isWishlisted ? 'fill-current' : ''}`} />
+                </Button>
+                <Button
+                  size="icon"
+                  variant="secondary"
+                  onClick={handleShare}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full border-2 border-foreground bg-background hover:bg-foreground hover:text-background transition-all"
+                >
+                  <Share2 className="h-4 w-4 md:h-5 md:w-5" />
+                </Button>
+              </div>
             </div>
           </div>
 

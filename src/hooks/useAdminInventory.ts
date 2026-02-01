@@ -43,3 +43,21 @@ export const useAdminInventory = (options: UseAdminInventoryOptions) => {
         placeholderData: (previousData) => previousData,
     });
 };
+
+export const useAdminShoe = (id: string | undefined) => {
+    return useQuery({
+        queryKey: ['admin-shoe', id],
+        queryFn: async () => {
+            if (!id) return null;
+            const { data, error } = await supabase
+                .from('shoes')
+                .select('*, shoe_sizes(*)')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+            return data as unknown as ShoeWithSizes;
+        },
+        enabled: !!id,
+    });
+};
