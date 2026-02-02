@@ -174,14 +174,24 @@ const ProductDetail = () => {
 
   const handleShare = async () => {
     if (!shoe) return;
+
+    // Construct the share URL using our Edge Function
+    // This allows bots to see the correct image/meta tags before redirecting to the app
+    const baseUrl = 'https://qdbvxznnzukdwooziqmd.supabase.co/functions/v1/share-product';
+    const params = new URLSearchParams({
+      id: shoe.id,
+      redirectUrl: window.location.href
+    });
+    const shareUrl = `${baseUrl}?${params.toString()}`;
+
     if (navigator.share) {
       await navigator.share({
         title: shoe.name,
         text: `Check out ${shoe.name} at TOKYO!`,
-        url: window.location.href,
+        url: shareUrl,
       });
     } else {
-      await navigator.clipboard.writeText(window.location.href);
+      await navigator.clipboard.writeText(shareUrl);
       toast.success('Link copied to clipboard!');
     }
   };
