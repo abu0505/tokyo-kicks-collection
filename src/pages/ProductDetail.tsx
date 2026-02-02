@@ -176,12 +176,8 @@ const ProductDetail = () => {
     if (!shoe) return;
 
     // Construct the share URL using our Edge Function
-    const baseUrl = 'https://qdbvxznnzukdwooziqmd.supabase.co/functions/v1/share-product';
-    const params = new URLSearchParams({
-      id: shoe.id,
-      redirectUrl: window.location.href
-    });
-    const shareUrl = `${baseUrl}?${params.toString()}`;
+
+    const shareUrl = `https://qdbvxznnzukdwooziqmd.supabase.co/functions/v1/share-product?id=${shoe.id}`;
 
     try {
       if (navigator.share) {
