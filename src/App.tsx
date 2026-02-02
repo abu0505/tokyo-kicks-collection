@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -39,6 +40,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorFallback from "./components/ErrorFallback";
 import ScrollToTop from "./components/ScrollToTop";
+
 
 const queryClient = new QueryClient();
 
@@ -137,6 +139,7 @@ const App = () => (
         </TooltipProvider>
       </ErrorBoundary>
     </QueryClientProvider>
+    <SpeedInsights />
   </HelmetProvider>
 );
 
