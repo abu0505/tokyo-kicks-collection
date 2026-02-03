@@ -49,91 +49,140 @@ export const generateInvoicePDF = async (order: OrderData): Promise<InvoiceResul
     const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
 
-    // --- 1. HEADER (BLACK BANNER) ---
-    doc.setFillColor(0, 0, 0);
-    doc.rect(0, 0, pageWidth, 40, "F");
+    // ============================================================
+    // 1. PREMIUM HEADER SECTION
+    // ============================================================
 
-    // Tokyo Shoes Brand (Left side)
-    doc.setTextColor(255, 255, 255);
+    // Brand Name (Top Left)
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(28);
-    doc.text("TOKYO SHOES", margin, 20);
+    doc.setFontSize(24);
+    doc.text("TOKYO SHOES", margin, 22);
 
-    // Slogan
+    // Tagline
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text("Premium Footwear Collection", margin, 28);
+    doc.setTextColor(100, 100, 100);
+    doc.text("Premium Footwear Collection", margin, 29);
 
-    // Invoice Metadata (Right side of header)
-    const rightColX = pageWidth - margin;
-    doc.setFontSize(16);
+    // TAX INVOICE Box (Top Right - Gray Background)
+    const boxWidth = 70;
+    const boxHeight = 32;
+    const boxX = pageWidth - margin - boxWidth;
+    const boxY = 10;
+
+    // Draw gray box
+    doc.setFillColor(245, 245, 245);
+    doc.roundedRect(boxX, boxY, boxWidth, boxHeight, 2, 2, "F");
+
+    // TAX INVOICE title
+    doc.setTextColor(0, 0, 0);
     doc.setFont("helvetica", "bold");
-    doc.text("INVOICE", rightColX, 15, { align: "right" });
+    doc.setFontSize(14);
+    doc.text("TAX INVOICE", boxX + boxWidth - 5, boxY + 8, { align: "right" });
 
-    doc.setFontSize(9);
+    // Invoice details in the box
     doc.setFont("helvetica", "normal");
-    doc.text(`Order: #${order.orderCode}`, rightColX, 22, { align: "right" });
-    doc.text(`Date: ${new Date(order.createdAt).toLocaleDateString("en-US", {
+    doc.setFontSize(9);
+    doc.setTextColor(60, 60, 60);
+    doc.text(`Order #${order.orderCode}`, boxX + boxWidth - 5, boxY + 15, { align: "right" });
+
+    const formattedDate = new Date(order.createdAt).toLocaleDateString("en-US", {
         day: "numeric",
         month: "long",
         year: "numeric"
-    })}`, rightColX, 27, { align: "right" });
-    doc.text(`Status: ${order.status}`, rightColX, 32, { align: "right" });
-
-    // --- 2. INFORMATION SECTIONS ---
-    let summaryY = 55;
-    const billToX = margin;
-    const shippingX = pageWidth / 2 + 5; // Start shipping address slightly past the middle
-
-    // Bill To (Left)
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.text("Bill To:", billToX, summaryY);
-
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    let billToY = summaryY + 5;
-    doc.text(`${order.firstName} ${order.lastName}`, billToX, billToY);
-    billToY += 5;
-    doc.text(order.email, billToX, billToY);
-    billToY += 5;
-    doc.text(order.phone, billToX, billToY);
-
-    // Shipping Address (Right)
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "bold");
-    doc.text("Shipping Address:", shippingX, summaryY);
-
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(80, 80, 80);
-    let shippingY = summaryY + 5;
-    const addressLines = [
-        order.address,
-        order.apartment,
-        `${order.city}, ${order.postalCode}`
-    ].filter(Boolean);
-
-    addressLines.forEach(line => {
-        doc.text(line as string, shippingX, shippingY);
-        shippingY += 5;
     });
+    doc.text(`Date: ${formattedDate}`, boxX + boxWidth - 5, boxY + 21, { align: "right" });
 
-    // The start position for the table should be after the tallest address column
-    let currentY = Math.max(billToY, shippingY);
+    // Status badge
+    const statusColors: Record<string, [number, number, number]> = {
+        pending: [234, 179, 8],
+        processing: [59, 130, 246],
+        shipped: [139, 92, 246],
+        delivered: [34, 197, 94],
+        cancelled: [239, 68, 68],
+    };
+    const statusColor = statusColors[order.status.toLowerCase()] || [100, 100, 100];
+    doc.setTextColor(...statusColor);
+    doc.setFont("helvetica", "bold");
+    doc.text(`Status: ${order.status.toUpperCase()}`, boxX + boxWidth - 5, boxY + 28, { align: "right" });
 
-    // --- 3. PRODUCT TABLE ---
-    currentY += 5; // Padding before the table
+    // Divider line below header
+    let currentY = 50;
+    doc.setDrawColor(220, 220, 220);
+    doc.setLineWidth(0.5);
+    doc.line(margin, currentY, pageWidth - margin, currentY);
 
+    // ============================================================
+    // 2. ADDRESSES SECTION (Side-by-Side)
+    // ============================================================
+    currentY += 10;
 
-    // Prepare table data
+    const billToX = margin;
+    const shipToX = pageWidth / 2 + 10;
+
+    // Bill To Section (Left)
+    doc.setTextColor(100, 100, 100);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("BILL TO", billToX, currentY);
+
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(10);
+    currentY += 6;
+    doc.text(`${order.firstName} ${order.lastName}`, billToX, currentY);
+    currentY += 5;
+    doc.setTextColor(80, 80, 80);
+    doc.setFontSize(9);
+    doc.text(order.email, billToX, currentY);
+
+    // Ship To Section (Right)
+    let shipY = currentY - 11; // Align with Bill To header
+    doc.setTextColor(100, 100, 100);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text("SHIP TO", shipToX, shipY);
+
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(30, 30, 30);
+    doc.setFontSize(10);
+    shipY += 6;
+
+    // Calculate available width for Ship To (margin to right margin)
+    const availableWidth = pageWidth - margin - shipToX;
+
+    // Wrap main address line
+    const wrappedAddress = doc.splitTextToSize(order.address, availableWidth);
+    doc.text(wrappedAddress, shipToX, shipY);
+
+    // Adjust Y based on lines in wrapped address (standard line height is ~1.15 * fontSize)
+    const addressLineCount = Array.isArray(wrappedAddress) ? wrappedAddress.length : 1;
+    shipY += (addressLineCount * 5); // 5mm spacing per line
+
+    // Apartment details on a new line
+    if (order.apartment) {
+        doc.setFontSize(10);
+        doc.setTextColor(30, 30, 30);
+        doc.text(order.apartment, shipToX, shipY);
+        shipY += 5;
+    }
+
+    // City and Postal Code
+    doc.setFontSize(9);
+    doc.setTextColor(80, 80, 80);
+    doc.text(`${order.city}, ${order.postalCode}`, shipToX, shipY);
+
+    // Update currentY to be after both address sections
+    currentY = Math.max(currentY, shipY) + 15;
+
+    // ============================================================
+    // 3. PRODUCT TABLE
+    // ============================================================
+
+    // Prepare table data with proper alignment
     const tableData = order.items.map(item => [
-        "", // Placeholder for image
-        {
-            content: `${item.brand}\n${item.name}`,
-            styles: { cellPadding: { top: 5, bottom: 5, left: 2, right: 2 } }
-        },
-        `Size ${item.size}`,
+        `${item.brand} ${item.name}\nSize: ${item.size} | Color: ${item.color}`,
         item.quantity.toString(),
         `Rs.${item.price.toFixed(2)}`,
         `Rs.${(item.price * item.quantity).toFixed(2)}`
@@ -141,151 +190,119 @@ export const generateInvoicePDF = async (order: OrderData): Promise<InvoiceResul
 
     autoTable(doc, {
         startY: currentY,
-        head: [["Image", "Product", "Details", "Qty", "Price", "Total"]],
+        head: [["Product", "Qty", "Price", "Total"]],
         body: tableData,
         theme: "plain",
         headStyles: {
-            fillColor: [0, 0, 0],
+            fillColor: [30, 30, 30],
             textColor: [255, 255, 255],
             fontSize: 9,
             fontStyle: "bold",
-            halign: "left",
+            cellPadding: 5,
         },
         styles: {
             fontSize: 9,
             textColor: [50, 50, 50],
-            cellPadding: 4,
-            valign: "middle",
+            cellPadding: 6,
+            lineColor: [230, 230, 230],
+            lineWidth: 0.1,
         },
         columnStyles: {
-            0: { cellWidth: 25 },
-            1: { cellWidth: 50 },
-            2: { cellWidth: 30 },
-            3: { cellWidth: 15, halign: "center" },
-            4: { cellWidth: 30, halign: "right" },
-            5: { cellWidth: 30, halign: "right" },
+            0: { cellWidth: "auto", halign: "left" },           // Product - LEFT
+            1: { cellWidth: 20, halign: "center" },             // Qty - CENTER
+            2: { cellWidth: 30, halign: "right" },              // Price - RIGHT
+            3: { cellWidth: 35, halign: "right", fontStyle: "bold" },  // Total - RIGHT
         },
-        didDrawCell: (data) => {
-            if (data.section === "body" && data.column.index === 0) {
-                const item = order.items[data.row.index];
-                if (item.imageUrl) {
-                    try {
-                        // Draw a small border/placeholder
-                        doc.setFillColor(245, 245, 245);
-                        doc.rect(data.cell.x + 2, data.cell.y + 2, 21, 21, "F");
-                    } catch (e) {
-                        console.error("Error drawing cell:", e);
-                    }
-                }
+        alternateRowStyles: {
+            fillColor: [250, 250, 250],
+        },
+        margin: { left: margin, right: margin },
+        didDrawPage: () => {
+            // Draw table border
+            const table = (doc as any).lastAutoTable;
+            if (table) {
+                doc.setDrawColor(220, 220, 220);
+                doc.setLineWidth(0.5);
+                doc.rect(table.settings.margin.left, table.settings.startY,
+                    pageWidth - table.settings.margin.left - table.settings.margin.right,
+                    table.finalY - table.settings.startY);
             }
-        },
-        margin: { left: margin, right: margin }
+        }
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 10;
+    currentY = (doc as any).lastAutoTable.finalY + 12;
 
-    // --- 4. PAYMENT SUMMARY ---
-    const summaryX = pageWidth - margin;
-    const labelX = summaryX - 60;
+    // ============================================================
+    // 4. PAYMENT SUMMARY (Bottom Right - Under Total Column)
+    // ============================================================
+    const summaryRightX = pageWidth - margin;
+    const summaryLabelX = summaryRightX - 55;
 
-    doc.setTextColor(0, 48, 87);
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(10);
-    doc.text("Payment Summary", labelX, currentY);
-    currentY += 8;
+    // Payment Summary Box
+    const summaryBoxY = currentY - 5;
+    const summaryBoxHeight = order.discountAmount && order.discountAmount > 0 ? 55 : 45;
 
-    const renderSummaryRow = (label: string, value: string, color: [number, number, number] = [80, 80, 80], isBold = false) => {
-        doc.setFont("helvetica", isBold ? "bold" : "normal");
-        doc.setTextColor(80, 80, 80);
-        doc.text(label, labelX, currentY);
-        doc.setTextColor(...color);
-        doc.text(value, summaryX, currentY, { align: "right" });
-        currentY += 6;
+    doc.setFillColor(250, 250, 250);
+    doc.roundedRect(summaryLabelX - 10, summaryBoxY, 75, summaryBoxHeight, 2, 2, "F");
+
+    currentY += 3;
+
+    // Summary Rows
+    const renderSummaryLine = (label: string, value: string, isTotal = false, isDiscount = false) => {
+        if (isTotal) {
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+        } else if (isDiscount) {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(34, 197, 94); // Green
+        } else {
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(9);
+            doc.setTextColor(80, 80, 80);
+        }
+        doc.text(label, summaryLabelX, currentY);
+        doc.text(value, summaryRightX - 5, currentY, { align: "right" });
+        currentY += isTotal ? 8 : 6;
     };
 
-    renderSummaryRow("Subtotal:", `Rs.${order.subtotal.toFixed(2)}`);
-    renderSummaryRow("Shipping:", order.shippingCost === 0 ? "Free" : `Rs.${order.shippingCost.toFixed(2)}`);
+    renderSummaryLine("Subtotal", `Rs.${order.subtotal.toFixed(2)}`);
+    renderSummaryLine("Shipping", order.shippingCost === 0 ? "FREE" : `Rs.${order.shippingCost.toFixed(2)}`);
 
     if (order.discountAmount && order.discountAmount > 0) {
-        renderSummaryRow(`Discount (${order.discountCode || "OFF"}):`, `-Rs.${order.discountAmount.toFixed(2)}`, [46, 178, 93]); // Green color
+        renderSummaryLine(`Discount (${order.discountCode || "PROMO"})`, `-Rs.${order.discountAmount.toFixed(2)}`, false, true);
     }
 
+    // Divider before total
     currentY += 2;
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(230, 230, 230);
-    doc.line(labelX, currentY, summaryX, currentY);
-    currentY += 8;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.3);
+    doc.line(summaryLabelX, currentY, summaryRightX - 5, currentY);
+    currentY += 6;
 
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.setFont("helvetica", "bold");
-    doc.text("Total:", labelX, currentY);
-    doc.text(`Rs.${order.total.toFixed(2)}`, summaryX, currentY, { align: "right" });
+    // Grand Total
+    renderSummaryLine("TOTAL", `Rs.${order.total.toFixed(2)}`, true);
 
-    currentY += 8;
-    doc.setFontSize(9);
+    // Payment Method (below summary)
+    currentY += 5;
+    doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Payment Method: ${order.paymentMethod || "N/A"}`, labelX, currentY);
+    doc.setTextColor(120, 120, 120);
+    doc.text(`Payment: ${order.paymentMethod || "N/A"}`, summaryLabelX, currentY);
 
-    const finalY = currentY + 20;
-
-    // --- 5. FOOTER ---
+    // ============================================================
+    // 5. FOOTER
+    // ============================================================
     doc.setFontSize(8);
     doc.setTextColor(150, 150, 150);
     doc.setFont("helvetica", "normal");
     doc.text("Thank you for shopping with Tokyo Shoes!", pageWidth / 2, pageHeight - 15, { align: "center" });
-    doc.text("For questions or concerns, please contact support@tokyoshoes.com", pageWidth / 2, pageHeight - 10, { align: "center" });
+    doc.text("Questions? Contact support@tokyoshoes.com", pageWidth / 2, pageHeight - 10, { align: "center" });
 
-    // Handle Images (Post-render addition)
-    // We need to fetch images and convert to base64 for reliable PDF inclusion
-    const fetchImageAsBase64 = async (url: string): Promise<string | null> => {
-        try {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result as string);
-                reader.onerror = () => resolve(null);
-                reader.readAsDataURL(blob);
-            });
-        } catch (e) {
-            console.error("Failed to fetch image:", url);
-            return null;
-        }
-    };
-
-    // Pre-load all images for the table
-    const imagePromises = order.items.map(async (item, index) => {
-        if (item.imageUrl) {
-            const base64 = await fetchImageAsBase64(item.imageUrl);
-            if (base64) {
-                // Find the cell coordinates
-                // AutoTable doesn't make it easy to retroactively add after async, 
-                // so we use the coordinates from the table metadata if available
-                return { base64, index };
-            }
-        }
-        return null;
-    });
-
-    const resolvedImages = await Promise.all(imagePromises);
-
-    // Re-run the table logic if images need to be there, or just draw over it
-    // Actually, standard practice for jsPDF is to add images while drawing.
-    // We'll use a simpler approach: we've already rendered the table with a placeholder column 0.
-    // Now we'll draw the images on top of those cells.
-
-    const table = (doc as any).lastAutoTable;
-    resolvedImages.forEach(img => {
-        if (img) {
-            const row = table.body[img.index];
-            const cell = row.cells[0];
-            doc.addImage(img.base64, "PNG", cell.x + 2.5, cell.y + 2.5, 20, 20);
-        }
-    });
-
-    // Output
+    // ============================================================
+    // OUTPUT
+    // ============================================================
     const pdfBlob = doc.output("blob");
     const blobUrl = URL.createObjectURL(pdfBlob);
 

@@ -8,8 +8,21 @@ interface HeroSectionProps {
 const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
   return (
     <section className="relative min-h-[70vh] md:min-h-[80vh] bg-primary text-primary-foreground flex items-center overflow-hidden">
+      {/* Hero Image - Priority loading for LCP optimization */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/hero-img.png"
+          alt="Tokyo Shoes Collection"
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          sizes="(max-width: 768px) 100vw, 50vw"
+          className="w-full h-full object-cover opacity-20 md:opacity-30"
+        />
+      </div>
+
       {/* Background pattern */}
-      <div className="absolute inset-0 opacity-5">
+      <div className="absolute inset-0 opacity-5 z-[1]">
         <div className="absolute top-10 md:top-20 left-4 md:left-10 text-[8rem] md:text-[20rem] font-black leading-none select-none">
           東
         </div>

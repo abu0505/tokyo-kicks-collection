@@ -258,7 +258,7 @@ const OrderDetails = () => {
         setIsCancelling(true);
         try {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const { error } = await supabase.rpc('cancel_order' as any, { p_order_id: order.id });
+            const { error } = await supabase.rpc('cancel_order_atomic' as any, { p_order_id: order.id });
 
             if (error) throw error;
 
