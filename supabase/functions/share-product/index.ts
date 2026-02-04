@@ -9,6 +9,27 @@ const corsHeaders = {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
+// List of known social media and crawler bots
+const CRAWLER_USER_AGENTS = [
+    'facebookexternalhit',
+    'Facebot',
+    'Twitterbot',
+    'WhatsApp',
+    'LinkedInBot',
+    'Pinterest',
+    'Slackbot',
+    'TelegramBot',
+    'Discordbot',
+    'Googlebot',
+    'bingbot',
+    'Applebot',
+]
+
+function isCrawler(userAgent: string | null): boolean {
+    if (!userAgent) return false
+    return CRAWLER_USER_AGENTS.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()))
+}
+
 serve(async (req: Request) => {
     // Handle CORS
     if (req.method === 'OPTIONS') {
@@ -41,7 +62,21 @@ serve(async (req: Request) => {
             return new Response('Product not found', { status: 404, headers: corsHeaders })
         }
 
-        // Prepare Metadata
+        const redirectUrl = `https://tokyo-shoes.vercel.app/product/${product.id}`
+        const userAgent = req.headers.get('user-agent')
+
+        // For regular browsers: Direct 302 redirect (fast, always works)
+        if (!isCrawler(userAgent)) {
+            return new Response(null, {
+                status: 302,
+                headers: {
+                    ...corsHeaders,
+                    'Location': redirectUrl,
+                },
+            })
+        }
+
+        // For crawlers: Return HTML with OG meta tags for link previews
         const title = product.name
         const description = `Check out these ${product.name} at Tokyo Shoes!`
         let imageUrl = product.image_url
@@ -51,31 +86,36 @@ serve(async (req: Request) => {
             imageUrl += '?width=1200&height=630&resize=contain&format=webp'
         }
 
-        const redirectUrl = `https://tokyo-shoes-tau.vercel.app/product/${product.id}`
+        // Escape quotes in title for meta tags
+        const escapedTitle = title.replace(/"/g, '&quot;')
+        const escapedDescription = description.replace(/"/g, '&quot;')
 
-        // Construct HTML
-        const html = `
-      <!DOCTYPE html>
-      <html lang="en">
-      <head>
-        <meta charset="UTF-8">
-        <title>${title}</title>
-        <meta property="og:title" content="${title}">
-        <meta property="og:description" content="${description}">
-        <meta property="og:image" content="${imageUrl}">
-        <meta name="twitter:card" content="summary_large_image">
-      </head>
-      <body>
-        <p>Redirecting to <a href="${redirectUrl}">Tokyo Shoes</a>...</p>
-        <script>window.location.href = "${redirectUrl}";</script>
-      </body>
-      </html>
-    `
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="refresh" content="0;url=${redirectUrl}">
+    <title>${escapedTitle}</title>
+    <meta property="og:title" content="${escapedTitle}">
+    <meta property="og:description" content="${escapedDescription}">
+    <meta property="og:image" content="${imageUrl}">
+    <meta property="og:url" content="${redirectUrl}">
+    <meta property="og:type" content="product">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${escapedTitle}">
+    <meta name="twitter:description" content="${escapedDescription}">
+    <meta name="twitter:image" content="${imageUrl}">
+</head>
+<body>
+    <p>Redirecting to <a href="${redirectUrl}">Tokyo Shoes</a>...</p>
+</body>
+</html>`
 
         return new Response(html, {
+            status: 200,
             headers: {
-                ...corsHeaders,
                 'Content-Type': 'text/html; charset=utf-8',
+                'Cache-Control': 'no-cache',
             },
         })
 

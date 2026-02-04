@@ -163,7 +163,11 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     const { error } = await signInWithGoogle();
     if (error) {
-      toast.error(error.message);
+      if (error.message.includes('provider is not enabled')) {
+        toast.error('Google Login is not enabled. Please enable it in your Supabase dashboard.');
+      } else {
+        toast.error(error.message);
+      }
     }
     // Note: Google Sign In redirects away, so we don't need to handle post-auth here usually.
     // If it's a popup (not typical for this supabase setup usually), we would wait.
