@@ -25,7 +25,7 @@ import { DbShoe } from '@/types/database';
 import { toast } from 'sonner';
 import TextLoader from '../TextLoader';
 import { ShoeWithSizes } from '@/hooks/useAdminInventory';
-import imageCompression from 'browser-image-compression';
+import { compressImage } from '@/lib/compressImage';
 
 const shoeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -166,20 +166,11 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
     }
 
     // Compression
-    const options = {
-      maxSizeMB: 0.1,
-      maxWidthOrHeight: 1024,
-      useWebWorker: true,
-      fileType: "image/webp"
-    };
-
     let fileToUpload = file;
     try {
-      console.log(`Original size: ${file.size / 1024 / 1024} MB`);
-      fileToUpload = await imageCompression(file, options);
-      console.log(`Compressed size: ${fileToUpload.size / 1024 / 1024} MB`);
+      fileToUpload = await compressImage(file);
     } catch (error) {
-      console.warn("Compression failed, falling back to original:", error);
+      console.warn("Compression/Optimization failed, using original:", error);
     }
 
     // Use MIME type to determine extension (not filename)

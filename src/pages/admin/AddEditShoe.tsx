@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import TextLoader from '@/components/TextLoader';
 import { useAdminShoe } from '@/hooks/useAdminInventory';
 import AdminLayout from '@/components/admin/AdminLayout';
-import imageCompression from 'browser-image-compression';
+import { compressImage } from '@/lib/compressImage';
 
 const shoeSchema = z.object({
     name: z.string().min(1, 'Name is required'),
@@ -114,7 +114,7 @@ const AddEditShoe = () => {
 
     const validateImageFile = (file: File): string | null => {
         if (file.size > MAX_FILE_SIZE) {
-            return 'Image must be smaller than 1MB';
+            return 'Image must be smaller than 5MB';
         }
         if (!ALLOWED_MIME_TYPES.includes(file.type)) {
             return 'Only JPG, PNG, and WebP images are allowed';
@@ -190,21 +190,11 @@ const AddEditShoe = () => {
             return null;
         }
 
-        // Compression
-        const options = {
-            maxSizeMB: 0.1,
-            maxWidthOrHeight: 1024,
-            useWebWorker: true,
-            fileType: "image/webp"
-        };
-
         let fileToUpload = file;
         try {
-            console.log(`Original size: ${file.size / 1024 / 1024} MB`);
-            fileToUpload = await imageCompression(file, options);
-            console.log(`Compressed size: ${fileToUpload.size / 1024 / 1024} MB`);
+            fileToUpload = await compressImage(file);
         } catch (error) {
-            console.warn("Compression failed, falling back to original:", error);
+            console.warn("Compression/Optimization failed, using original:", error);
         }
 
         const fileExt = fileToUpload.type === 'image/webp' ? 'webp' : (MIME_TO_EXT[fileToUpload.type] || 'jpg');
@@ -595,7 +585,7 @@ const AddEditShoe = () => {
                                             Click to upload Main Image
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            PNG, JPG, or WEBP (max 1MB)
+                                            PNG, JPG, or WEBP (max 5MB)
                                         </p>
                                     </>
                                 )}
