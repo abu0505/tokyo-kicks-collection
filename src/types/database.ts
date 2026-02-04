@@ -395,6 +395,7 @@ export type Database = {
           image_url: string | null
           additional_images: string[] | null
           name: string
+          original_price: number | null
           price: number
           sizes: number[]
           status: Database["public"]["Enums"]["shoe_status"]
@@ -407,6 +408,7 @@ export type Database = {
           image_url?: string | null
           additional_images?: string[] | null
           name: string
+          original_price?: number | null
           price: number
           sizes: number[]
           status?: Database["public"]["Enums"]["shoe_status"]
@@ -419,6 +421,7 @@ export type Database = {
           image_url?: string | null
           additional_images?: string[] | null
           name?: string
+          original_price?: number | null
           price?: number
           sizes?: number[]
           status?: Database["public"]["Enums"]["shoe_status"]

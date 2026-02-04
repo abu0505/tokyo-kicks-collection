@@ -8,7 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { isNewArrival, Shoe } from '@/types/shoe';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, calculateDiscountPercentage } from '@/lib/format';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
@@ -80,6 +80,7 @@ const ProductDetail = () => {
         name: dbShoe.name,
         brand: dbShoe.brand,
         price: dbShoe.price,
+        originalPrice: dbShoe.original_price || undefined,
         image: dbShoe.image_url || '',
         additionalImages: dbShoe.additional_images || [], // Map additional images
         sizes: dbShoe.sizes,
@@ -94,6 +95,7 @@ const ProductDetail = () => {
   const isWishlisted = shoe ? isInWishlist(shoe.id) : false;
   const isNew = shoe ? isNewArrival(shoe) : false;
   const isSoldOut = shoe ? shoe.status === 'sold_out' : false;
+  const discountPercentage = shoe ? calculateDiscountPercentage(shoe.originalPrice, shoe.price) : 0;
 
   // Combine main image and additional images for the carousel
   const allImages = shoe
@@ -270,6 +272,7 @@ const ProductDetail = () => {
               "@type": "Offer",
               "priceCurrency": "INR",
               "price": shoe.price,
+              "highPrice": shoe.originalPrice,
               "availability": isSoldOut ? "https://schema.org/OutOfStock" : "https://schema.org/InStock"
             }
           })}
@@ -392,6 +395,7 @@ const ProductDetail = () => {
                     NEW ARRIVAL
                   </Badge>
                 )}
+                {/* Discount badge removed as per request */}
               </div>
 
               {/* Action Buttons (Wishlist/Share) */}
@@ -483,9 +487,23 @@ const ProductDetail = () => {
             </div>
 
             {/* Price */}
-            <p className="text-3xl md:text-4xl font-black mb-6 md:mb-8">
-              {formatPrice(shoe.price)}
-            </p>
+            <div className="mb-6 md:mb-8">
+              <div className="flex items-center gap-4">
+                {discountPercentage > 0 && (
+                  <span className="text-3xl md:text-4xl text-red-600 font-normal">
+                    -{discountPercentage}%
+                  </span>
+                )}
+                <p className="text-3xl md:text-4xl font-bold">
+                  {formatPrice(shoe.price)}
+                </p>
+              </div>
+              {discountPercentage > 0 && shoe.originalPrice && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  M.R.P.: <span className="line-through">{formatPrice(shoe.originalPrice)}</span>
+                </p>
+              )}
+            </div>
 
             {/* CTA Buttons */}
             <div className="flex gap-3 mb-6 md:mb-8">

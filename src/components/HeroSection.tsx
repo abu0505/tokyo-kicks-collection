@@ -1,5 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { getOptimizedImageUrl } from '@/lib/imageOptimizer';
 
 interface HeroSectionProps {
   onBrowseClick: () => void;
@@ -11,7 +12,7 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
       {/* Hero Image - Priority loading for LCP optimization */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/hero-img.png"
+          src={getOptimizedImageUrl("/hero-img.png", 800)}
           alt="Tokyo Shoes Collection"
           fetchPriority="high"
           loading="eager"

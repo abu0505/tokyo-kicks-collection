@@ -31,6 +31,7 @@ const shoeSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   brand: z.string().min(1, 'Brand is required'),
   price: z.number().min(1, 'Price must be greater than 0'),
+  originalPrice: z.number().optional().nullable(),
   status: z.enum(['in_stock', 'sold_out']),
   variants: z.array(
     z.object({
@@ -71,6 +72,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
       name: shoe?.name || '',
       brand: shoe?.brand || '',
       price: shoe?.price || 0,
+      originalPrice: shoe?.original_price || 0,
       status: (shoe?.status as 'in_stock' | 'sold_out') || 'in_stock',
       variants: shoe?.shoe_sizes?.map(s => ({ size: s.size, quantity: s.quantity || 0 })) || [{ size: 0, quantity: 0 }],
     },
@@ -100,6 +102,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
           name: '',
           brand: '',
           price: 0,
+          originalPrice: 0,
           status: 'in_stock',
           variants: [{ size: 0, quantity: 0 }],
         });
@@ -232,6 +235,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
         name: data.name,
         brand: data.brand,
         price: data.price,
+        original_price: data.originalPrice && data.originalPrice > 0 ? data.originalPrice : null,
         // Status should be calculated based on quantities, but let's trust the logic/user input for now or let the trigger override it.
         // Actually, trigger will update status too.
 
@@ -439,7 +443,7 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="price" className="font-bold text-sm tracking-wide">
-                  PRICE (₹)
+                  SELLING PRICE (₹)
                 </Label>
                 <Input
                   id="price"
@@ -453,20 +457,33 @@ const AddShoeModal = ({ open, onClose, shoe }: AddShoeModalProps) => {
                 )}
               </div>
               <div className="space-y-2">
-                <Label className="font-bold text-sm tracking-wide">STATUS</Label>
-                <Select
-                  value={watch('status')}
-                  onValueChange={(value) => setValue('status', value as 'in_stock' | 'sold_out')}
-                >
-                  <SelectTrigger className="border border-border">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="in_stock">In Stock</SelectItem>
-                    <SelectItem value="sold_out">Sold Out</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label htmlFor="originalPrice" className="font-bold text-sm tracking-wide">
+                  ORIGINAL PRICE (₹)
+                </Label>
+                <Input
+                  id="originalPrice"
+                  type="number"
+                  placeholder="Optional"
+                  className="border border-border focus:border-accent"
+                  {...register('originalPrice', { valueAsNumber: true })}
+                />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="font-bold text-sm tracking-wide">STATUS</Label>
+              <Select
+                value={watch('status')}
+                onValueChange={(value) => setValue('status', value as 'in_stock' | 'sold_out')}
+              >
+                <SelectTrigger className="border border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="in_stock">In Stock</SelectItem>
+                  <SelectItem value="sold_out">Sold Out</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Stock Manager */}

@@ -51,6 +51,7 @@ const RelatedProducts = ({ currentShoe, onWishlistClick, wishlistIds }: RelatedP
         name: shoe.name,
         brand: shoe.brand,
         price: shoe.price,
+        originalPrice: shoe.original_price || undefined,
         image: shoe.image_url || '',
         sizes: shoe.sizes,
         status: shoe.status,

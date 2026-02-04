@@ -3,6 +3,7 @@ export interface Shoe {
   name: string;
   brand: string;
   price: number;
+  originalPrice?: number; // Original price before discount (if applicable)
   image: string;
   additionalImages?: string[];
   sizes: number[];

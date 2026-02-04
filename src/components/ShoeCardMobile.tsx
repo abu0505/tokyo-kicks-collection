@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Shoe, isNewArrival } from '@/types/shoe';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, calculateDiscountPercentage } from '@/lib/format';
 import StarRating from '@/components/StarRating';
 import { motion, useMotionValue, useTransform, PanInfo, animate } from 'framer-motion';
 import { toast } from 'sonner';
@@ -37,6 +37,7 @@ const ShoeCardMobile = React.memo(({
   const navigate = useNavigate();
   const isNew = isNewArrival(shoe);
   const isSoldOut = shoe.status === 'sold_out';
+  const discountPercentage = calculateDiscountPercentage(shoe.originalPrice, shoe.price);
   const [showHint, setShowHint] = useState(false);
 
   // Check if this is the first card and hint hasn't been shown
@@ -233,9 +234,16 @@ const ShoeCardMobile = React.memo(({
             decoding="async"
           />
 
+          {/* Discount Badge */}
+          {discountPercentage > 0 && (
+            <Badge className="absolute top-1 right-1 bg-red-600 hover:bg-red-600 text-white font-bold px-2 py-0.5 text-[10px]">
+              -{discountPercentage}%
+            </Badge>
+          )}
+
           {/* NEW Badge */}
           {isNew && (
-            <Badge className="absolute top-1 left-1 bg-red-600 hover:bg-red-600 text-white font-bold px-2 py-0.5 text-[10px]">
+            <Badge className="absolute top-1 left-1 bg-accent hover:bg-accent text-accent-foreground font-bold px-2 py-0.5 text-[10px]">
               NEW
             </Badge>
           )}
@@ -291,9 +299,16 @@ const ShoeCardMobile = React.memo(({
 
           {/* Bottom Section - Price & Status */}
           <div className="flex items-center justify-between pt-2 border-t border-border mt-auto">
-            <p className="text-lg font-black">
-              {formatPrice(shoe.price)}
-            </p>
+            <div className="flex flex-col">
+              <p className="text-lg font-black">
+                {formatPrice(shoe.price)}
+              </p>
+              {discountPercentage > 0 && shoe.originalPrice && (
+                <p className="text-[10px] text-muted-foreground line-through">
+                  {formatPrice(shoe.originalPrice)}
+                </p>
+              )}
+            </div>
             {isSoldOut ? (
               <span className="text-[10px] font-bold text-red-600">
                 Out of Stock

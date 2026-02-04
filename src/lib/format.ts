@@ -11,3 +11,14 @@ export const formatDate = (date: Date): string => {
     year: 'numeric',
   });
 };
+
+// Calculate discount percentage from original and sale price
+export const calculateDiscountPercentage = (
+  originalPrice: number | undefined | null,
+  salePrice: number
+): number => {
+  if (!originalPrice || originalPrice <= salePrice || originalPrice <= 0) {
+    return 0;
+  }
+  return Math.round(((originalPrice - salePrice) / originalPrice) * 100);
+};

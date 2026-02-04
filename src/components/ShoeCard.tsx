@@ -5,7 +5,7 @@ import { Shoe, isNewArrival } from '@/types/shoe';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { getOptimizedImageUrl } from '@/lib/imageOptimizer';
-import { formatPrice } from '@/lib/format';
+import { formatPrice, calculateDiscountPercentage } from '@/lib/format';
 import StarRating from '@/components/StarRating';
 
 import { useImageBrightness } from '@/hooks/useImageBrightness';
@@ -32,6 +32,7 @@ const ShoeCard = React.memo(({
   const navigate = useNavigate();
   const isNew = isNewArrival(shoe);
   const isSoldOut = shoe.status === 'sold_out';
+  const discountPercentage = calculateDiscountPercentage(shoe.originalPrice, shoe.price);
 
   // Detect brightness at top-right corner (approx 90% x, 10% y)
   // We use the optimized image url logic internally in the hook by passing the raw url, 
@@ -63,8 +64,13 @@ const ShoeCard = React.memo(({
 
         {/* Badges */}
         <div className="absolute top-4 left-4 flex flex-col gap-2">
-          {isNew && (
+          {discountPercentage > 0 && (
             <Badge className="bg-red-600 hover:bg-red-600 text-white font-bold px-3 py-1 text-xs justify-center">
+              -{discountPercentage}%
+            </Badge>
+          )}
+          {isNew && (
+            <Badge className="bg-accent hover:bg-accent text-accent-foreground font-bold px-3 py-1 text-xs justify-center">
               NEW
             </Badge>
           )}
@@ -150,9 +156,16 @@ const ShoeCard = React.memo(({
 
         {/* Price */}
         <div className="flex items-center justify-between pt-2 md:pt-4 border-t border-border bg-white mt-auto">
-          <p className="text-base md:text-2xl font-black">
-            {formatPrice(shoe.price)}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-base md:text-2xl font-black">
+              {formatPrice(shoe.price)}
+            </p>
+            {discountPercentage > 0 && shoe.originalPrice && (
+              <p className="text-xs md:text-sm text-muted-foreground line-through">
+                {formatPrice(shoe.originalPrice)}
+              </p>
+            )}
+          </div>
           {isSoldOut ? (
             <span className="text-xs md:text-sm font-bold text-red-600">
               Out of Stock
