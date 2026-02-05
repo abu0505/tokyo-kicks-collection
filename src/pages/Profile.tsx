@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Package, MapPin, Loader2 } from 'lucide-react';
+import { Package, MapPin, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -195,6 +195,61 @@ const Profile = () => {
         },
         onError: (error) => {
             toast.error(`Error updating address: ${error.message}`);
+        },
+    });
+
+    const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+    const [showNewPassword, setShowNewPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    const passwordSchema = z.object({
+        currentPassword: z.string().min(1, 'Current password is required'),
+        newPassword: z.string().min(6, 'Password must be at least 6 characters'),
+        confirmPassword: z.string().min(6, 'Password must be at least 6 characters'),
+    }).refine((data) => data.newPassword === data.confirmPassword, {
+        message: "Passwords don't match",
+        path: ["confirmPassword"],
+    });
+
+    type PasswordFormValues = z.infer<typeof passwordSchema>;
+
+    const passwordForm = useForm<PasswordFormValues>({
+        resolver: zodResolver(passwordSchema),
+        defaultValues: {
+            currentPassword: '',
+            newPassword: '',
+            confirmPassword: '',
+        }
+    });
+
+    const updatePasswordMutation = useMutation({
+        mutationFn: async (values: PasswordFormValues) => {
+            if (!user?.email) throw new Error('No user email');
+
+            // 1. Verify current password
+            const { error: signInError } = await supabase.auth.signInWithPassword({
+                email: user.email,
+                password: values.currentPassword,
+            });
+
+            if (signInError) {
+                throw new Error('Incorrect current password');
+            }
+
+            // 2. Update to new password
+            const { error: updateError } = await supabase.auth.updateUser({
+                password: values.newPassword
+            });
+
+            if (updateError) throw updateError;
+            return values;
+        },
+        onSuccess: () => {
+            toast.success('Password updated successfully');
+            passwordForm.reset();
+        },
+        onError: (error) => {
+            toast.error(error.message);
         },
     });
 
@@ -424,6 +479,129 @@ const Profile = () => {
                                     </Form>
                                 </CardContent>
                             </Card>
+
+                            {/* Change Password - New Section */}
+                            <Card className="border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] bg-white overflow-hidden">
+                                <CardHeader className='border-b-2 border-black bg-gray-50'>
+                                    <div className='flex justify-between items-center'>
+                                        <div className='flex items-center gap-3'>
+                                            <div className="w-2 h-6 bg-red-500" />
+                                            <CardTitle className="text-xl font-black uppercase tracking-tight">Security</CardTitle>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="p-8">
+                                    <Form {...passwordForm}>
+                                        <form onSubmit={passwordForm.handleSubmit((data) => updatePasswordMutation.mutate(data))} className="space-y-8">
+                                            <FormField
+                                                control={passwordForm.control}
+                                                name="currentPassword"
+                                                render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel className='text-xs font-black text-black uppercase tracking-widest'>Current Password</FormLabel>
+                                                        <FormControl>
+                                                            <div className="relative">
+                                                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                                                                    <Lock className="w-5 h-5" />
+                                                                </span>
+                                                                <Input
+                                                                    {...field}
+                                                                    type={showCurrentPassword ? 'text' : 'password'}
+                                                                    className="border-2 border-black rounded-none h-12 font-bold focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-red-500 transition-colors pl-12 pr-12"
+                                                                    placeholder="••••••••"
+                                                                />
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                                                                >
+                                                                    {showCurrentPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                                </button>
+                                                            </div>
+                                                        </FormControl>
+                                                        <FormMessage className="text-red-500 font-bold italic" />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <FormField
+                                                    control={passwordForm.control}
+                                                    name="newPassword"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel className='text-xs font-black text-black uppercase tracking-widest'>New Password</FormLabel>
+                                                            <FormControl>
+                                                                <div className="relative">
+                                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                                                                        <Lock className="w-5 h-5" />
+                                                                    </span>
+                                                                    <Input
+                                                                        {...field}
+                                                                        type={showNewPassword ? 'text' : 'password'}
+                                                                        className="border-2 border-black rounded-none h-12 font-bold focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-red-500 transition-colors pl-12 pr-12"
+                                                                        placeholder="••••••••"
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setShowNewPassword(!showNewPassword)}
+                                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                                                                    >
+                                                                        {showNewPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                                    </button>
+                                                                </div>
+                                                            </FormControl>
+                                                            <FormMessage className="text-red-500 font-bold italic" />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                                <FormField
+                                                    control={passwordForm.control}
+                                                    name="confirmPassword"
+                                                    render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel className='text-xs font-black text-black uppercase tracking-widest'>Confirm Password</FormLabel>
+                                                            <FormControl>
+                                                                <div className="relative">
+                                                                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-black">
+                                                                        <Lock className="w-5 h-5" />
+                                                                    </span>
+                                                                    <Input
+                                                                        {...field}
+                                                                        type={showConfirmPassword ? 'text' : 'password'}
+                                                                        className="border-2 border-black rounded-none h-12 font-bold focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-red-500 transition-colors pl-12 pr-12"
+                                                                        placeholder="••••••••"
+                                                                    />
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black"
+                                                                    >
+                                                                        {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                                                                    </button>
+                                                                </div>
+                                                            </FormControl>
+                                                            <FormMessage className="text-red-500 font-bold italic" />
+                                                        </FormItem>
+                                                    )}
+                                                />
+                                            </div>
+
+                                            <div className="flex justify-end pt-4">
+                                                <Button
+                                                    type="submit"
+                                                    disabled={updatePasswordMutation.isPending}
+                                                    className="bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest h-14 px-10 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                                                >
+                                                    {updatePasswordMutation.isPending && <Loader2 className="mr-3 h-5 w-5 animate-spin" />}
+                                                    Update Password
+                                                </Button>
+                                            </div>
+                                        </form>
+                                    </Form>
+                                </CardContent>
+                            </Card>
+
                         </div>
                     )}
 
