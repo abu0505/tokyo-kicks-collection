@@ -83,7 +83,9 @@ serve(async (req: Request) => {
 
         // Optimize Image if Supabase Storage
         if (imageUrl && imageUrl.includes('supabase.co')) {
-            imageUrl += '?width=1200&height=630&resize=contain&format=webp'
+            // Force JPEG for better compatibility with WhatsApp/iOS
+            // Add quality parameter to keep size down
+            imageUrl += '?width=1200&height=630&resize=contain&format=jpeg&quality=80'
         }
 
         // Escape quotes in title for meta tags
@@ -99,6 +101,9 @@ serve(async (req: Request) => {
     <meta property="og:title" content="${escapedTitle}">
     <meta property="og:description" content="${escapedDescription}">
     <meta property="og:image" content="${imageUrl}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:type" content="image/jpeg">
     <meta property="og:url" content="${redirectUrl}">
     <meta property="og:type" content="product">
     <meta name="twitter:card" content="summary_large_image">
