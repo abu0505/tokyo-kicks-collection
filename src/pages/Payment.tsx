@@ -108,6 +108,16 @@ const Payment = () => {
     // Format expiry date
     const formatExpiry = (value: string) => {
         const v = value.replace(/\s+/g, "").replace(/[^0-9]/gi, "");
+
+        // Prevent entering a month greater than 12
+        if (v.length >= 2) {
+            const month = parseInt(v.substring(0, 2));
+            if (month > 12 || month === 0) {
+                toast.error("Please enter a valid month (01-12)");
+                return v.substring(0, 1);
+            }
+        }
+
         if (v.length >= 2) {
             return v.substring(0, 2) + " / " + v.substring(2, 4);
         }
@@ -159,7 +169,6 @@ const Payment = () => {
             return;
         }
 
-        // Validate payment info based on method
         if (paymentMethod === "card") {
             if (!cardNumber || !cardExpiry || !cardCvv || !cardName) {
                 toast.error("Please fill in all card details");
@@ -167,6 +176,29 @@ const Payment = () => {
             }
             if (cardNumber.replace(/\s/g, "").length < 16) {
                 toast.error("Please enter a valid card number");
+                return;
+            }
+
+            // Validate Expiry Date
+            const [expMonth, expYear] = cardExpiry.split(" / ");
+            if (!expMonth || !expYear) {
+                toast.error("Invalid expiration date format");
+                return;
+            }
+
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth() + 1; // 1-12
+            const currentYear = parseInt(currentDate.getFullYear().toString().slice(-2)); // Last 2 digits
+            const inputMonth = parseInt(expMonth);
+            const inputYear = parseInt(expYear);
+
+            if (inputYear < currentYear || (inputYear === currentYear && inputMonth < currentMonth)) {
+                toast.error("Card has expired");
+                return;
+            }
+
+            if (inputMonth < 1 || inputMonth > 12) {
+                toast.error("Invalid expiration month");
                 return;
             }
         }

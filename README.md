@@ -1,73 +1,66 @@
-# Welcome to your Lovable project
+# Tokyo Kicks Collection 👟
 
-## Project info
+A premium e-commerce platform tailored for sneaker enthusiasts, built with modern web technologies to provide a seamless and immersive shopping experience.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## ✨ Key Features
 
-## How can I edit this code?
+### 🛍️ User Experience
+-   **Immersive Product Catalog**: Browse a curated collection of sneakers with advanced filtering, sorting, and search capabilities.
+-   **Detailed Product Pages**: High-quality image galleries with zoom, customer reviews, size guides, and related products.
+-   **Social Sharing**: Easily share detailed product links with friends via social media or clipboard.
+-   **Smart Wishlist**: Save your favorite kicks for later with a single click.
+-   **Seamless Checkout**: Secure and user-friendly checkout process with address management and coupon code support.
+-   **Real-time Order Tracking**: Track your order status from placement to delivery with a visual timeline and status updates.
+-   **Invoice Generation**: Download professional PDF invoices for your orders instantly.
+-   **Order Management**: Cancel orders within the allowed window directly from the tracking page.
+-   **Secure Authentication**: Robust user accounts with login, registration, and password management.
 
-There are several ways of editing your application.
+### 🛠️ Admin Dashboard
+-   **Product Management**: Add, edit, and manage sneaker inventory, including sizes, prices, and images.
+-   **Order Oversight**: View and manage customer orders and statuses.
+-   **Coupon Management**: Create and manage discount codes for promotions.
 
-**Use Lovable**
+## 🚀 Tech Stack
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+-   **Frontend**: [React](https://react.dev/), [TypeScript](https://www.typescriptlang.org/), [Vite](https://vitejs.dev/)
+-   **Styling**: [Tailwind CSS](https://tailwindcss.com/), [Shadcn UI](https://ui.shadcn.com/)
+-   **Animations**: [Framer Motion](https://www.framer.com/motion/)
+-   **Backend & Database**: [Supabase](https://supabase.com/) (PostgreSQL, Auth, Storage, Edge Functions)
+-   **State Management**: [TanStack Query](https://tanstack.com/query/latest)
+-   **Forms**: [React Hook Form](https://react-hook-form.com/), [Zod](https://zod.dev/)
+-   **Utilities**: `jspdf` (Invoices), `lucide-react` (Icons), `sonner` (Toasts)
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Getting Started
 
-**Use your preferred IDE**
+Follow these steps to run the project locally:
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+1.  **Clone the repository**
+    ```bash
+    git clone <YOUR_GIT_URL>
+    cd tokyo-kicks-collection
+    ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+2.  **Install dependencies**
+    ```bash
+    npm install
+    ```
 
-Follow these steps:
+3.  **Environment Setup**
+    -   Ensure you have your Supabase credentials configured in functionality (managed via `src/integrations/supabase/client.ts`).
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+4.  **Start the development server**
+    ```bash
+    npm run dev
+    ```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+5.  **Open the app**
+    -   Visit `http://localhost:8080` (or the port shown in your terminal) to view the application.
 
-# Step 3: Install the necessary dependencies.
-npm i
+## 📦 Deployment
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+This project is optimized for deployment on platforms like Vercel or Netlify.
+Build the project for production:
+
+```bash
+npm run build
 ```
-
-**Edit a file directly in GitHub**
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)

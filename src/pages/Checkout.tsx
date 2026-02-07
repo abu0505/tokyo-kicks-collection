@@ -9,13 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { ArrowLeft, Lock, ChevronRight, X } from "lucide-react";
+import { ArrowLeft, Lock, ChevronRight, X, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import AddressSelector from "@/components/AddressSelector";
 import type { SavedAddress } from "@/components/AddressCard";
 import TextLoader from "@/components/TextLoader";
+import { checkDeliveryAvailability, isValidPostalCode, type DeliveryCheckResult } from "@/lib/deliveryValidator";
 
 interface ShippingInfo {
     email: string;
@@ -187,6 +188,10 @@ const Checkout = () => {
     const [stockIssues, setStockIssues] = useState<Record<string, { type: 'sold_out' | 'insufficient', available: number, name: string }>>({});
     const [isValidatingStock, setIsValidatingStock] = useState(true);
 
+    // Delivery availability state
+    const [deliveryStatus, setDeliveryStatus] = useState<DeliveryCheckResult | null>(null);
+    const [isCheckingDelivery, setIsCheckingDelivery] = useState(false);
+
     useEffect(() => {
         const validateInventory = async () => {
             if (cartItems.length === 0) {
@@ -234,6 +239,33 @@ const Checkout = () => {
 
         validateInventory();
     }, [cartItems]);
+
+    // Check delivery availability when postal code changes
+    useEffect(() => {
+        const validateDelivery = async () => {
+            // Only validate when postal code is 6 digits
+            if (!isValidPostalCode(formData.postalCode)) {
+                setDeliveryStatus(null);
+                return;
+            }
+
+            setIsCheckingDelivery(true);
+            try {
+                const result = await checkDeliveryAvailability(formData.postalCode);
+                setDeliveryStatus(result);
+            } catch (error) {
+                console.error("Error checking delivery:", error);
+                setDeliveryStatus({
+                    available: false,
+                    message: "Unable to verify delivery availability. Please try again."
+                });
+            } finally {
+                setIsCheckingDelivery(false);
+            }
+        };
+
+        validateDelivery();
+    }, [formData.postalCode]);
 
     // Handle "Add New Address" click
     const handleAddNewAddress = () => {
@@ -293,6 +325,22 @@ const Checkout = () => {
         if (!formData.firstName || !formData.lastName || !formData.address ||
             !formData.city || !formData.postalCode || !formData.phone || !formData.email) {
             toast.error("Please fill in all required fields");
+            return;
+        }
+
+        // Block if delivery is not available
+        if (isCheckingDelivery) {
+            toast.error("Please wait while we verify delivery availability");
+            return;
+        }
+
+        if (deliveryStatus && !deliveryStatus.available) {
+            toast.error(deliveryStatus.message);
+            return;
+        }
+
+        if (!deliveryStatus) {
+            toast.error("Please enter a valid 6-digit postal code");
             return;
         }
 
@@ -596,17 +644,54 @@ const Checkout = () => {
                                                     className="rounded-full py-6 px-5 bg-background border-border focus-visible:ring-accent"
                                                     required
                                                 />
-                                                <Input
-                                                    type="text"
-                                                    name="postalCode"
-                                                    placeholder="Postal code"
-                                                    value={formData.postalCode}
-                                                    onChange={handleInputChange}
-                                                    maxLength={6}
-                                                    className="rounded-full py-6 px-5 bg-background border-border focus-visible:ring-accent"
-                                                    required
-                                                />
+                                                <div className="relative">
+                                                    <Input
+                                                        type="text"
+                                                        name="postalCode"
+                                                        placeholder="Postal code"
+                                                        value={formData.postalCode}
+                                                        onChange={handleInputChange}
+                                                        maxLength={6}
+                                                        className={`rounded-full py-6 px-5 bg-background border-border focus-visible:ring-accent ${deliveryStatus
+                                                                ? deliveryStatus.available
+                                                                    ? 'border-green-500 focus-visible:ring-green-500'
+                                                                    : 'border-red-500 focus-visible:ring-red-500'
+                                                                : ''
+                                                            }`}
+                                                        required
+                                                    />
+                                                    {/* Delivery status indicator */}
+                                                    {isCheckingDelivery && (
+                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                            <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+                                                        </div>
+                                                    )}
+                                                    {!isCheckingDelivery && deliveryStatus && (
+                                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                            {deliveryStatus.available ? (
+                                                                <CheckCircle2 className="w-5 h-5 text-green-500" />
+                                                            ) : (
+                                                                <XCircle className="w-5 h-5 text-red-500" />
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
+
+                                            {/* Delivery availability message */}
+                                            {deliveryStatus && (
+                                                <div className={`flex items-center gap-2 px-4 py-3 rounded-xl text-sm ${deliveryStatus.available
+                                                        ? 'bg-green-500/10 text-green-700 border border-green-500/20'
+                                                        : 'bg-red-500/10 text-red-700 border border-red-500/20'
+                                                    }`}>
+                                                    {deliveryStatus.available ? (
+                                                        <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                                                    ) : (
+                                                        <XCircle className="w-4 h-4 flex-shrink-0" />
+                                                    )}
+                                                    <span className="font-medium">{deliveryStatus.message}</span>
+                                                </div>
+                                            )}
 
                                             <div>
                                                 <Input
