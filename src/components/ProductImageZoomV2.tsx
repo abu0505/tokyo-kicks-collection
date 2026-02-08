@@ -76,12 +76,12 @@ const ProductImageZoomV2 = ({ src, alt, className = '', onClick }: ProductImageZ
     }, [src]);
 
     return (
-        <div className={`relative ${className}`}>
+        <div className={`relative flex items-center justify-center ${className}`}>
             {/* Main Image Container */}
             <div
                 id="image-zoom-container"
                 ref={containerRef}
-                className={`relative rounded-lg overflow-hidden ${isMobile ? '' : 'cursor-crosshair'}`}
+                className={`relative rounded-lg overflow-hidden w-fit h-fit max-w-full max-h-full ${isMobile ? '' : 'cursor-crosshair'}`}
                 onMouseMove={handleMouseMove}
                 onMouseEnter={handleMouseEnter}
                 onMouseLeave={handleMouseLeave}
@@ -93,7 +93,7 @@ const ProductImageZoomV2 = ({ src, alt, className = '', onClick }: ProductImageZ
                     ref={imageRef}
                     src={src}
                     alt={alt}
-                    className="w-full h-full object-cover"
+                    className="w-auto h-auto max-w-full max-h-full object-contain"
                     onLoad={handleImageLoad}
                     loading="eager"
                 />
