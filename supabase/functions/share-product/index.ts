@@ -9,12 +9,13 @@ const corsHeaders = {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
 }
 
-// List of known social media and crawler bots
+// List of known social media and crawler bots (including iOS-specific patterns)
 const CRAWLER_USER_AGENTS = [
     'facebookexternalhit',
     'Facebot',
     'Twitterbot',
     'WhatsApp',
+    'WhatsApp/',  // iOS WhatsApp format: WhatsApp/2.x.x.x I
     'LinkedInBot',
     'Pinterest',
     'Slackbot',
@@ -23,11 +24,41 @@ const CRAWLER_USER_AGENTS = [
     'Googlebot',
     'bingbot',
     'Applebot',
+    'bot',  // Generic bot detection
+    'crawler',
+    'spider',
 ]
 
 function isCrawler(userAgent: string | null): boolean {
     if (!userAgent) return false
     return CRAWLER_USER_AGENTS.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()))
+}
+
+/**
+ * Converts a Supabase storage URL to use the image transformation endpoint
+ * This converts WebP images to JPEG for better iOS/WhatsApp compatibility
+ */
+function getTransformedImageUrl(originalUrl: string): string {
+    if (!originalUrl || !originalUrl.includes('supabase.co/storage/v1/object/public/')) {
+        return originalUrl
+    }
+
+    // Convert from:
+    // https://xxx.supabase.co/storage/v1/object/public/bucket/path/image.webp
+    // To:
+    // https://xxx.supabase.co/storage/v1/render/image/public/bucket/path/image.webp?width=1200&height=630&format=jpeg
+
+    const transformedUrl = originalUrl.replace(
+        '/storage/v1/object/public/',
+        '/storage/v1/render/image/public/'
+    )
+
+    // Add transformation parameters for WhatsApp/iOS compatibility:
+    // - format=jpeg: Convert WebP to JPEG (better iOS support)
+    // - width=1200, height=630: Standard OG image dimensions
+    // - resize=contain: Preserve aspect ratio
+    // - quality=85: Good quality while keeping file size reasonable
+    return `${transformedUrl}?width=1200&height=630&resize=contain&format=jpeg&quality=85`
 }
 
 serve(async (req: Request) => {
@@ -79,37 +110,43 @@ serve(async (req: Request) => {
         // For crawlers: Return HTML with OG meta tags for link previews
         const title = product.name
         const description = `Check out these ${product.name} at Tokyo Shoes!`
-        let imageUrl = product.image_url
 
-        // Optimize Image if Supabase Storage
-        if (imageUrl && imageUrl.includes('supabase.co')) {
-            // Force JPEG for better compatibility with WhatsApp/iOS
-            // Add quality parameter to keep size down
-            imageUrl += '?width=1200&height=630&resize=contain&format=jpeg&quality=80'
-        }
+        // Use transformed image URL for proper JPEG conversion (iOS/WhatsApp compatibility)
+        const imageUrl = getTransformedImageUrl(product.image_url)
 
         // Escape quotes in title for meta tags
         const escapedTitle = title.replace(/"/g, '&quot;')
         const escapedDescription = description.replace(/"/g, '&quot;')
 
+        // Build HTML with comprehensive OG meta tags
+        // Note: og:site_name is important for WhatsApp iOS
         const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="0;url=${redirectUrl}">
-    <title>${escapedTitle}</title>
+    <title>${escapedTitle} | Tokyo Shoes</title>
+    
+    <!-- Essential Open Graph Meta Tags -->
     <meta property="og:title" content="${escapedTitle}">
     <meta property="og:description" content="${escapedDescription}">
     <meta property="og:image" content="${imageUrl}">
+    <meta property="og:image:secure_url" content="${imageUrl}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:alt" content="${escapedTitle}">
     <meta property="og:url" content="${redirectUrl}">
     <meta property="og:type" content="product">
+    <meta property="og:site_name" content="Tokyo Shoes">
+    <meta property="og:locale" content="en_US">
+    
+    <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="${escapedTitle}">
     <meta name="twitter:description" content="${escapedDescription}">
     <meta name="twitter:image" content="${imageUrl}">
+    <meta name="twitter:site" content="@TokyoShoes">
 </head>
 <body>
     <p>Redirecting to <a href="${redirectUrl}">Tokyo Shoes</a>...</p>
@@ -120,7 +157,9 @@ serve(async (req: Request) => {
             status: 200,
             headers: {
                 'Content-Type': 'text/html; charset=utf-8',
-                'Cache-Control': 'no-cache',
+                'Cache-Control': 'no-cache, no-store, must-revalidate',
+                'Pragma': 'no-cache',
+                'Expires': '0',
             },
         })
 
