@@ -7,11 +7,11 @@ import imageCompression from 'browser-image-compression';
  */
 export async function compressImage(file: File): Promise<File> {
     const options = {
-        maxSizeMB: 0.1, // Target 100KB
+        maxSizeMB: 0.03, // Target 30KB
         maxWidthOrHeight: 1920, // Reasonable max dimension
         useWebWorker: true,
         fileType: 'image/webp',
-        initialQuality: 0.8, // Good starting point
+        initialQuality: 0.6, // Adjusted for 30KB target
     };
 
     try {

@@ -39,13 +39,15 @@ import {
 import AdminLayout from '@/components/admin/AdminLayout';
 // AddShoeModal removed
 import TextLoader from '@/components/TextLoader';
+import CleanStorageButton from '@/components/admin/CleanStorageButton';
 import { supabase } from '@/integrations/supabase/client';
 import { DbShoe } from '@/types/database';
 import { formatPrice } from '@/lib/format';
 import { toast } from 'sonner';
 import { useAdminInventory, ShoeWithSizes } from '@/hooks/useAdminInventory';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-const PAGE_SIZE = 10;
+
 
 const Inventory = () => {
   const navigate = useNavigate();
@@ -53,19 +55,21 @@ const Inventory = () => {
   // isAddModalOpen and editingShoe state removed
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
+  const isMobile = useIsMobile();
+  const pageSize = isMobile ? 10 : 12;
 
   // Fetch shoes with pagination
   const { data: inventoryData, isLoading, isFetching } = useAdminInventory({
     page,
-    pageSize: PAGE_SIZE,
+    pageSize,
   });
 
   const shoes = inventoryData?.shoes || [];
   const totalCount = inventoryData?.totalCount || 0;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / pageSize);
 
-  const startItem = (page - 1) * PAGE_SIZE + 1;
-  const endItem = Math.min(page * PAGE_SIZE, totalCount);
+  const startItem = (page - 1) * pageSize + 1;
+  const endItem = Math.min(page * pageSize, totalCount);
 
   // Update status mutation
   const updateStatusMutation = useMutation({
@@ -89,6 +93,67 @@ const Inventory = () => {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
+      // 1. Get the shoe data to find images
+      const { data: shoe, error: fetchError } = await supabase
+        .from('shoes')
+        .select('image_url, additional_images')
+        .eq('id', id)
+        .single();
+
+      if (fetchError) {
+        console.error("Error fetching shoe for deletion cleanup:", fetchError);
+        // We still proceed to delete the record if we can't fetch it? 
+        // No, if we can't fetch it, maybe it doesn't exist or error. 
+        // Let's just try to delete the record if fetch fails, as a fallback.
+      } else if (shoe) {
+        // 2. Collect all image paths
+        const pathsToRemove: string[] = [];
+
+        // Helper to extract path from URL
+        const getPathFromUrl = (url: string) => {
+          try {
+            // URL format: .../storage/v1/object/public/shoe-images/folder/file.webp
+            // We need 'folder/file.webp'
+            // Split by bucket name 'shoe-images/'
+            const parts = url.split('/shoe-images/');
+            if (parts.length > 1) {
+              return decodeURIComponent(parts[1]);
+            }
+          } catch (e) {
+            console.error("Error parsing URL:", url, e);
+          }
+          return null;
+        };
+
+        if (shoe.image_url) {
+          const path = getPathFromUrl(shoe.image_url);
+          if (path) pathsToRemove.push(path);
+        }
+
+        if (shoe.additional_images && Array.isArray(shoe.additional_images)) {
+          shoe.additional_images.forEach((url: string) => {
+            const path = getPathFromUrl(url);
+            if (path) pathsToRemove.push(path);
+          });
+        }
+
+        // 3. Delete from storage
+        if (pathsToRemove.length > 0) {
+          const { error: storageError } = await supabase.storage
+            .from('shoe-images')
+            .remove(pathsToRemove);
+
+          if (storageError) {
+            console.error("Failed to remove images from storage:", storageError);
+            toast.error("Failed to cleanup images from storage");
+            // Continue to delete record anyway? Yes.
+          } else {
+            console.log("Successfully removed images:", pathsToRemove);
+          }
+        }
+      }
+
+      // 4. Delete the record
       const { error } = await supabase
         .from('shoes')
         .delete()
@@ -98,7 +163,7 @@ const Inventory = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-shoes'] });
-      toast.success('Shoe deleted');
+      toast.success('Shoe and associated images deleted');
       setDeleteConfirmId(null);
     },
     onError: (error) => {
@@ -120,6 +185,7 @@ const Inventory = () => {
             <p className="text-xs md:text-sm text-muted-foreground">View and manage your shoe inventory</p>
           </div>
           <div className="flex items-center gap-3">
+            <CleanStorageButton />
             <button
               onClick={() => navigate('/admin/inventory/add')}
               className="h-10 px-2 md:px-4 flex items-center justify-center gap-1 md:gap-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-bold transition-all shadow-md shadow-accent/30"

@@ -1,116 +1,147 @@
-import { useState, useRef, MouseEvent } from 'react';
+import { useState, useRef, useEffect, MouseEvent } from 'react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ProductImageZoomProps {
   src: string;
   alt: string;
   className?: string;
+  onClick?: () => void;
 }
 
-const ProductImageZoom = ({ src, alt, className = '' }: ProductImageZoomProps) => {
-  const [isHovering, setIsHovering] = useState(false);
-  const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
-  const [backgroundPosition, setBackgroundPosition] = useState('0% 0%');
+const ProductImageZoom = ({ src, alt, className = '', onClick }: ProductImageZoomProps) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
+  const isMobile = useIsMobile();
 
-  // Zoom settings
-  const ZOOM_FACTOR = 2.5;
-  const LENS_SIZE = 120;
-  const RESULT_SIZE = 300;
+  const [isHovering, setIsHovering] = useState(false);
+  const [isImageLoaded, setIsImageLoaded] = useState(false);
+  const [lensPosition, setLensPosition] = useState({ x: 0, y: 0 });
+  const [backgroundPosition, setBackgroundPosition] = useState({ x: 0, y: 0 });
+
+  // Lens and result box configuration
+  const LENS_SIZE = 120; // Circular lens diameter
+  const RESULT_WIDTH = 350;
+  const RESULT_HEIGHT = 350;
+  const ZOOM_FACTOR = 2.0; // Magnification level (reduced from 2.5)
 
   const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
-    if (!containerRef.current || !imageRef.current) return;
+    if (!containerRef.current || !imageRef.current || !isImageLoaded || isMobile) return;
 
-    const rect = containerRef.current.getBoundingClientRect();
-    const img = imageRef.current;
+    const container = containerRef.current;
+    const image = imageRef.current;
+    const rect = container.getBoundingClientRect();
 
-    // Cursor position relative to container
+    // Get cursor position relative to the container
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
 
-    // Lens half size for centering
-    const lensHalf = LENS_SIZE / 2;
+    // Center the lens on the cursor
+    let lensX = x - LENS_SIZE / 2;
+    let lensY = y - LENS_SIZE / 2;
 
-    // Clamp lens position within image bounds
-    const maxX = img.offsetWidth - LENS_SIZE;
-    const maxY = img.offsetHeight - LENS_SIZE;
+    // Clamp lens position to stay within image boundaries
+    const maxLensX = image.offsetWidth - LENS_SIZE;
+    const maxLensY = image.offsetHeight - LENS_SIZE;
 
-    const lensX = Math.min(Math.max(x - lensHalf, 0), maxX);
-    const lensY = Math.min(Math.max(y - lensHalf, 0), maxY);
+    lensX = Math.max(0, Math.min(lensX, maxLensX));
+    lensY = Math.max(0, Math.min(lensY, maxLensY));
 
     setLensPosition({ x: lensX, y: lensY });
 
-    // Calculate background position for zoomed view
-    const bgX = (lensX / img.offsetWidth) * 100;
-    const bgY = (lensY / img.offsetHeight) * 100;
-    setBackgroundPosition(`${bgX}% ${bgY}%`);
+    // Calculate background position for the result
+    // The background needs to show the zoomed portion of the image
+    const bgX = (lensX / image.offsetWidth) * (image.offsetWidth * ZOOM_FACTOR);
+    const bgY = (lensY / image.offsetHeight) * (image.offsetHeight * ZOOM_FACTOR);
+
+    setBackgroundPosition({ x: bgX, y: bgY });
   };
 
   const handleMouseEnter = () => {
-    setIsHovering(true);
+    if (!isMobile) setIsHovering(true);
   };
 
   const handleMouseLeave = () => {
     setIsHovering(false);
   };
 
+  const handleImageLoad = () => {
+    setIsImageLoaded(true);
+  };
+
+  // Check for cached images on mount
+  useEffect(() => {
+    if (imageRef.current && imageRef.current.complete) {
+      setIsImageLoaded(true);
+    }
+  }, [src]);
+
   return (
-    <div className={`relative ${className}`}>
+    <div className={`relative flex items-center justify-center ${className}`}>
       {/* Main Image Container */}
       <div
+        id="image-zoom-container"
         ref={containerRef}
-        className="relative overflow-hidden cursor-zoom-in"
+        className={`relative rounded-lg overflow-hidden w-fit h-fit max-w-full max-h-full ${isMobile ? '' : 'cursor-crosshair'}`}
         onMouseMove={handleMouseMove}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
+        onClick={onClick}
       >
+        {/* Product Image */}
         <img
+          id="product-image"
           ref={imageRef}
           src={src}
           alt={alt}
-          className="w-full h-full object-cover"
+          className="w-auto h-auto max-w-full max-h-full object-contain"
+          onLoad={handleImageLoad}
+          loading="eager"
         />
 
-        {/* Zoom Lens */}
-        {isHovering && (
+        {/* Zoom Lens - Circular overlay that follows cursor */}
+        {isHovering && isImageLoaded && !isMobile && (
           <div
-            className="absolute pointer-events-none border-2 border-white/50 rounded-full bg-white/10 backdrop-blur-[1px]"
+            id="zoom-lens"
+            className="absolute rounded-full pointer-events-none"
             style={{
-              width: LENS_SIZE,
-              height: LENS_SIZE,
-              left: lensPosition.x,
-              top: lensPosition.y,
-              transition: 'left 0.05s ease-out, top 0.05s ease-out',
+              width: `${LENS_SIZE}px`,
+              height: `${LENS_SIZE}px`,
+              left: `${lensPosition.x}px`,
+              top: `${lensPosition.y}px`,
+              border: '3px solid rgba(255, 255, 255, 0.7)',
+              boxShadow: '0 0 0 2000px rgba(0, 0, 0, 0.3), 0 4px 20px rgba(0, 0, 0, 0.5)',
+              background: 'transparent',
             }}
           />
         )}
 
-        {/* Hover Hint */}
-        {!isHovering && (
-          <div className="absolute bottom-4 left-4 bg-foreground/80 text-background px-3 py-2 text-xs font-bold backdrop-blur-sm">
+        {/* Hover to zoom hint */}
+        {!isHovering && isImageLoaded && !isMobile && (
+          <div className="absolute bottom-4 left-4 bg-foreground/90 text-background px-4 py-2 text-xs font-bold pointer-events-none flex items-center gap-2 rounded">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+            </svg>
             HOVER TO ZOOM
           </div>
         )}
       </div>
 
-      {/* Zoomed Result Box */}
-      {isHovering && (
+      {/* Zoomed Result Box - Positioned to the right */}
+      {isHovering && isImageLoaded && imageRef.current && !isMobile && (
         <div
-          className="absolute top-0 left-[105%] border-2 border-foreground rounded-lg shadow-xl bg-background overflow-hidden z-50 hidden lg:block"
+          id="zoom-result"
+          className="absolute top-0 border-2 border-foreground shadow-2xl bg-background overflow-hidden z-50"
           style={{
-            width: RESULT_SIZE,
-            height: RESULT_SIZE,
+            width: `${RESULT_WIDTH}px`,
+            height: `${RESULT_HEIGHT}px`,
+            left: 'calc(100% + 16px)',
+            borderRadius: '8px',
             backgroundImage: `url(${src})`,
-            backgroundSize: `${(containerRef.current?.offsetWidth || 0) * ZOOM_FACTOR}px ${(containerRef.current?.offsetHeight || 0) * ZOOM_FACTOR}px`,
-            backgroundPosition: backgroundPosition,
+            backgroundSize: `${imageRef.current.offsetWidth * ZOOM_FACTOR}px ${imageRef.current.offsetHeight * ZOOM_FACTOR}px`,
+            backgroundPosition: `-${backgroundPosition.x}px -${backgroundPosition.y}px`,
             backgroundRepeat: 'no-repeat',
           }}
-        >
-          {/* Zoom indicator */}
-          <div className="absolute bottom-2 right-2 bg-foreground text-background px-2 py-1 text-xs font-bold">
-            {ZOOM_FACTOR}x ZOOM
-          </div>
-        </div>
+        />
       )}
     </div>
   );

@@ -12,7 +12,7 @@ import { formatPrice, calculateDiscountPercentage } from '@/lib/format';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
-import ProductImageZoomV2 from '@/components/ProductImageZoomV2';
+import ProductImageZoom from '@/components/ProductImageZoom';
 import RelatedProducts from '@/components/RelatedProducts';
 import TextLoader from '@/components/TextLoader';
 import FullScreenGallery from '@/components/FullScreenGallery';
@@ -332,7 +332,7 @@ const ProductDetail = () => {
                     transition={{ duration: 0.2 }}
                     className="w-full h-full"
                   >
-                    <ProductImageZoomV2
+                    <ProductImageZoom
                       src={getOptimizedImageUrl(currentImage, 800)}
                       alt={`${shoe.name} - View ${currentImageIndex + 1}`}
                       className="w-full h-full"

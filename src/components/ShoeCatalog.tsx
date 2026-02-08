@@ -22,7 +22,6 @@ interface ShoeCatalogProps {
   wishlistIds: string[];
 }
 
-const ITEMS_PER_PAGE = 10;
 
 const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) => {
   const [quickViewShoe, setQuickViewShoe] = useState<DbShoe | null>(null);
@@ -40,14 +39,17 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
     setCurrentPage(1);
   }, [shoes]);
 
+  // Pagination size: 12 for desktop/tablet, 10 for mobile
+  const itemsPerPage = isMobile ? 10 : 12;
+
   // Calculate pages
-  const totalPages = Math.ceil(shoes.length / ITEMS_PER_PAGE);
+  const totalPages = Math.ceil(shoes.length / itemsPerPage);
 
   // Get visible shoes
   const visibleShoes = useMemo(() => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    return shoes.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-  }, [shoes, currentPage]);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return shoes.slice(startIndex, startIndex + itemsPerPage);
+  }, [shoes, currentPage, itemsPerPage]);
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -144,7 +146,7 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
           {/* Results count */}
           <div className="flex items-center justify-between mb-6 md:mb-8">
             <p className="text-sm px-3 text-muted-foreground font-medium">
-              SHOWING <span className="text-foreground font-bold">{visibleShoes.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0}-{Math.min(currentPage * ITEMS_PER_PAGE, shoes.length)} of {shoes.length}</span> RESULTS
+              SHOWING <span className="text-foreground font-bold">{visibleShoes.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}-{Math.min(currentPage * itemsPerPage, shoes.length)} of {shoes.length}</span> RESULTS
             </p>
           </div>
 
