@@ -104,7 +104,7 @@ const AddEditShoe = () => {
     }, [shoe, reset]);
 
     // Image validation constants
-    const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB limit before compression
+    const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB limit before compression
     const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
     const MIME_TO_EXT: Record<string, string> = {
         'image/jpeg': 'jpg',
@@ -114,7 +114,7 @@ const AddEditShoe = () => {
 
     const validateImageFile = (file: File): string | null => {
         if (file.size > MAX_FILE_SIZE) {
-            return 'Image must be smaller than 5MB';
+            return 'Image must be smaller than 50MB';
         }
         if (!ALLOWED_MIME_TYPES.includes(file.type)) {
             return 'Only JPG, PNG, and WebP images are allowed';
@@ -585,7 +585,7 @@ const AddEditShoe = () => {
                                             Click to upload Main Image
                                         </p>
                                         <p className="text-xs text-muted-foreground mt-1">
-                                            PNG, JPG, or WEBP (max 5MB)
+                                            PNG, JPG, or WEBP (max 50MB)
                                         </p>
                                     </>
                                 )}
