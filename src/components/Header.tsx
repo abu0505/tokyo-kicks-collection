@@ -268,90 +268,22 @@ const Header = () => {
                 </Button>
               </SheetTrigger>
               <SheetContent side="right" className="w-[280px] bg-background/60 backdrop-blur-md border-l border-foreground/20">
-                <SheetHeader className="border-b border-foreground/10 pb-4 mb-4">
+                <SheetHeader>
                   <SheetTitle className="text-left font-black">MENU</SheetTitle>
                 </SheetHeader>
 
-                <nav className="flex flex-col gap-4">
-                  <a
-                    href="#catalog"
-                    onClick={scrollToCatalog}
-                    className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                  >
-                    <Footprints className="w-5 h-5" />
-                    CATALOG
-                  </a>
-                  <Link
-                    to="/contact"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                  >
-                    <MessageCircle className="w-5 h-5" />
-                    CONTACT US
-                  </Link>
-                  <Link
-                    to="/wishlist"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                  >
-                    <Heart className="w-5 h-5" />
-                    WISHLIST
-                    {wishlistCount > 0 && (
-                      <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                        {wishlistCount}
-                      </span>
-                    )}
-                  </Link>
-                  {user && (
-                    <Link
-                      to="/cart"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                    >
-                      <ShoppingCart className="w-5 h-5" />
-                      CART
-                      {cartCount > 0 && (
-                        <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
-                          {cartCount}
-                        </span>
-                      )}
-                    </Link>
-                  )}
-                  {user && (
-                    <Link
-                      to="/order-history"
-                      onClick={() => setMobileMenuOpen(false)}
-                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
-                    >
-                      <Package className="w-5 h-5" />
-                      ORDER HISTORY
-                    </Link>
-                  )}
-
-                  <div className="border-t border-foreground/10 pt-4 mt-2">
+                <nav className="flex flex-col gap-6">
+                  {/* Section: Shop */}
+                  <div className="">
                     {user ? (
-                      <>
-                        <p className="text-sm text-foreground/70 font-semibold mb-3">
+                      <div className="flex items-center gap-3 pt-5">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${user?.email ? getRandomColor(user.email) : 'bg-muted'}`}>
+                          {getInitials(user?.user_metadata?.full_name || user?.email)}
+                        </div>
+                        <p className="text-sm font-bold truncate">
                           {user.user_metadata?.full_name || user.email}
                         </p>
-                        {isAdmin && (
-                          <Link
-                            to="/admin"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
-                          >
-                            <Settings className="w-5 h-5" />
-                            MANAGE
-                          </Link>
-                        )}
-                        <button
-                          onClick={handleLogout}
-                          className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 w-full text-left"
-                        >
-                          <LogOut className="w-5 h-5" />
-                          LOGOUT
-                        </button>
-                      </>
+                      </div>
                     ) : (
                       <Link
                         to="/auth"
@@ -360,10 +292,108 @@ const Header = () => {
                         className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
                       >
                         <User className="w-5 h-5" />
-                        LOGIN
+                        LOGIN / SIGN UP
                       </Link>
                     )}
                   </div>
+                  <div className="flex flex-col gap-2">
+                    <p className="text-[10px] font-black tracking-[0.2em] text-foreground/40 mb-1 uppercase">SHOP</p>
+                    <a
+                      href="#catalog"
+                      onClick={scrollToCatalog}
+                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                    >
+                      <Footprints className="w-5 h-5" />
+                      CATALOG
+                    </a>
+                    {user && (
+                      <Link
+                        to="/cart"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                      >
+                        <ShoppingCart className="w-5 h-5" />
+                        CART
+                        {cartCount > 0 && (
+                          <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                            {cartCount}
+                          </span>
+                        )}
+                      </Link>
+                    )}
+                    <Link
+                      to="/wishlist"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                    >
+                      <Heart className="w-5 h-5" />
+                      WISHLIST
+                      {wishlistCount > 0 && (
+                        <span className="bg-accent text-accent-foreground text-xs font-bold px-2 py-0.5 rounded-full">
+                          {wishlistCount}
+                        </span>
+                      )}
+                    </Link>
+                  </div>
+
+                  {/* Section: Account - Only for logged in users */}
+                  {user && (
+                    <div className="flex flex-col gap-2 pt-2 border-t border-foreground/5">
+                      <p className="text-[10px] font-black tracking-[0.2em] text-foreground/40 mb-1 uppercase">ACCOUNT</p>
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                      >
+                        <User className="w-5 h-5" />
+                        MY PROFILE
+                      </Link>
+                      <Link
+                        to="/order-history"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                      >
+                        <Package className="w-5 h-5" />
+                        ORDER HISTORY
+                      </Link>
+                      {isAdmin && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setMobileMenuOpen(false)}
+                          className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-accent transition-colors py-2"
+                        >
+                          <Settings className="w-5 h-5" />
+                          MANAGE
+                        </Link>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Section: Support */}
+                  <div className="flex flex-col gap-2 pt-2 border-t border-foreground/5">
+                    <p className="text-[10px] font-black tracking-[0.2em] text-foreground/40 mb-1 uppercase">SUPPORT</p>
+                    <Link
+                      to="/contact"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-lg font-bold tracking-wide hover:text-accent transition-colors py-2 flex items-center gap-2"
+                    >
+                      <MessageCircle className="w-5 h-5" />
+                      CONTACT US
+                    </Link>
+                  </div>
+
+
+                  {user && (
+                    <div className="border-t border-foreground/10 pt-4 mt-auto">
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-2 text-lg font-bold tracking-wide hover:text-destructive transition-colors py-2 w-full text-left"
+                      >
+                        <LogOut className="w-5 h-5" />
+                        LOGOUT
+                      </button>
+                    </div>
+                  )}
                 </nav>
               </SheetContent>
             </Sheet>

@@ -121,7 +121,7 @@ const AdminLayout = ({ children, header }: AdminLayoutProps) => {
   return (
     <div className="h-screen overflow-hidden bg-secondary flex flex-col md:flex-row">
       {/* Mobile Header */}
-      <div className="md:hidden border-b border-border p-4 flex items-center justify-between bg-background">
+      <div className="md:hidden sticky top-0 z-50 bg-background/60 backdrop-blur-md backdrop-saturate-150 border-b border-foreground/20 p-4 flex items-center justify-between shadow-sm transition-all duration-300">
         <div className="flex items-center gap-2">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
