@@ -8,7 +8,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="col-span-2 md:col-span-2 text-left">
             <Link to="/" className="inline-block mb-4">
-              <img src="/logo.png" alt="Tokyo Shoes" className="h-12 md:h-16 w-auto brightness-0 invert" />
+              <img src="/logo.webp" alt="Tokyo Shoes" className="h-12 md:h-16 w-auto brightness-0 invert" width="168" height="64" />
             </Link>
             <p className="text-primary-foreground/60 max-w-md mb-4 md:mb-6 text-sm md:text-base">
               Curated selection of authentic sneakers. From iconic classics to limited edition drops.

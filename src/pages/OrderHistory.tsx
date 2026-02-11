@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { supabase } from "@/integrations/supabase/client";
@@ -143,6 +143,13 @@ const OrderHistory = () => {
             <Header />
 
             <main className="flex-grow container mx-auto px-4 py-8 md:py-12 max-w-5xl">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                    <Link to="/" className="hover:text-foreground">Home</Link>
+                    <ChevronRight className="w-4 h-4" />
+                    <span className="text-foreground font-medium">My Orders</span>
+                </div>
+
                 {/* Page Header */}
                 <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>

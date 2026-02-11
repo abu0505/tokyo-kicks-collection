@@ -414,7 +414,7 @@ const Auth = () => {
                   }}
                   className="font-bold text-accent hover:underline"
                 >
-                  Sign in
+                  Login
                 </button>
               </>
             ) : (

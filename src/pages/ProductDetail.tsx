@@ -1,7 +1,7 @@
-import { useImageBrightness } from '@/hooks/useImageBrightness';
+
 import { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, Heart, Share2, Truck, Shield, RotateCcw, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -104,12 +104,6 @@ const ProductDetail = () => {
 
   const currentImage = allImages[currentImageIndex] || '';
 
-  // Detect brightness at top-right corner to dynamically color icons
-  const isDarkBg = useImageBrightness(currentImage, { x: 0.9, y: 0.1 });
-  // Detect brightness for navigation arrows (left-center and right-center)
-  const isLeftArrowDarkBg = useImageBrightness(currentImage, { x: 0.1, y: 0.5 });
-  const isRightArrowDarkBg = useImageBrightness(currentImage, { x: 0.9, y: 0.5 });
-
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
   };
@@ -135,15 +129,17 @@ const ProductDetail = () => {
     setCurrentImageIndex(0);
   }, [id]);
 
-  // Preload all images for better performance
+  // Optimized Preloading: Only load the NEXT image to ensure smooth navigation without wasting bandwidth
   useEffect(() => {
     if (allImages.length > 0) {
-      allImages.forEach((src) => {
+      const nextIndex = (currentImageIndex + 1) % allImages.length;
+      if (nextIndex !== currentImageIndex) {
         const img = new Image();
-        img.src = getOptimizedImageUrl(src, 800);
-      });
+        // Preload next image at high quality
+        img.src = getOptimizedImageUrl(allImages[nextIndex], 800);
+      }
     }
-  }, [allImages]);
+  }, [currentImageIndex, allImages]);
 
 
   const handleWishlistClick = () => {
@@ -286,15 +282,12 @@ const ProductDetail = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.1 }}
       >
-        {/* Back Button */}
-        <Button
-          variant="ghost"
-          onClick={() => navigate(-1)}
-          className="mb-2 md:mb-6 -ml-2 md:-ml-4 font-bold hover:bg-transparent hover:text-accent group text-sm md:text-base"
-        >
-          <ArrowLeft className="mr-1 md:mr-2 h-4 w-4 md:h-5 md:w-5 transition-transform group-hover:-translate-x-1" />
-          BACK
-        </Button>
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2 md:mb-6">
+          <Link to="/" className="hover:text-foreground">Home</Link>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-foreground font-medium truncate max-w-[200px] md:max-w-none">{shoe.name}</span>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12">
           {/* Image Section with Gallery */}
@@ -350,8 +343,7 @@ const ProductDetail = () => {
                           e.stopPropagation();
                           prevImage();
                         }}
-                        className={`absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md border border-white/30 p-2 rounded-full shadow-lg z-10 transition-all active:scale-95 disabled:opacity-30 ${isLeftArrowDarkBg ? 'text-white' : 'text-black'
-                          }`}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md border border-white/30 p-2 rounded-full shadow-lg z-10 transition-all active:scale-95 disabled:opacity-30 text-black"
                         aria-label="Previous image"
                       >
                         <ChevronLeft className="w-6 h-6" />
@@ -361,8 +353,7 @@ const ProductDetail = () => {
                           e.stopPropagation();
                           nextImage();
                         }}
-                        className={`absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md border border-white/30 p-2 rounded-full shadow-lg z-10 transition-all active:scale-95 disabled:opacity-30 ${isRightArrowDarkBg ? 'text-white' : 'text-black'
-                          }`}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/20 backdrop-blur-md border border-white/30 p-2 rounded-full shadow-lg z-10 transition-all active:scale-95 disabled:opacity-30 text-black"
                         aria-label="Next image"
                       >
                         <ChevronRight className="w-6 h-6" />
@@ -406,7 +397,7 @@ const ProductDetail = () => {
                   onClick={handleWishlistClick}
                   className={`w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/30 backdrop-blur-md transition-all shadow-lg ${isWishlisted
                     ? 'bg-red-500/30 hover:bg-red-500/50 text-red-600'
-                    : `bg-white/20 hover:bg-white/40 ${isDarkBg ? 'text-white' : 'text-black'}`
+                    : 'bg-white/20 hover:bg-white/40 text-black'
                     }`}
                 >
                   <Heart className={`h-4 w-4 md:h-5 md:w-5 ${isWishlisted ? 'fill-current' : ''}`} />
@@ -415,10 +406,7 @@ const ProductDetail = () => {
                   size="icon"
                   variant="secondary"
                   onClick={handleShare}
-                  className={`w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/30 bg-white/20 backdrop-blur-md transition-all shadow-lg hover:bg-white/40 ${isDarkBg
-                    ? 'text-white'
-                    : 'text-black'
-                    }`}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-white/30 bg-white/20 backdrop-blur-md transition-all shadow-lg hover:bg-white/40 text-black"
                 >
                   <Share2 className="h-4 w-4 md:h-5 md:w-5" />
                 </Button>

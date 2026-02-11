@@ -5,7 +5,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import BackToTopButton from '@/components/BackToTopButton';
 import { Link, useNavigate } from 'react-router-dom';
-import { Heart, Calendar, User } from 'lucide-react';
+import { Heart, Calendar, User, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/hooks/useAuth';
 import { useWishlist } from '@/contexts/WishlistContext';
@@ -52,6 +52,7 @@ const Wishlist = () => {
         additionalImages: shoe.additional_images || [],
         sizes: shoe.sizes,
         status: shoe.status,
+        originalPrice: shoe.original_price ?? undefined,
         createdAt: new Date(shoe.created_at),
         updatedAt: shoe.updated_at ? new Date(shoe.updated_at) : undefined
       })) as Shoe[];
@@ -90,6 +91,7 @@ const Wishlist = () => {
       additional_images: shoe.additionalImages || null,
       sizes: shoe.sizes,
       status: shoe.status,
+      original_price: shoe.originalPrice ?? null,
       created_at: shoe.createdAt.toISOString(),
       updated_at: shoe.updatedAt ? shoe.updatedAt.toISOString() : null
     };
@@ -106,6 +108,7 @@ const Wishlist = () => {
       additionalImages: dbShoe.additional_images || [],
       sizes: dbShoe.sizes,
       status: dbShoe.status,
+      originalPrice: dbShoe.original_price ?? undefined,
       createdAt: new Date(dbShoe.created_at),
       updatedAt: dbShoe.updated_at ? new Date(dbShoe.updated_at) : undefined
     };
@@ -120,6 +123,13 @@ const Wishlist = () => {
       <Header />
 
       <main className="container py-8 md:py-12 px-1.5">
+        {/* Breadcrumb */}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6 px-3">
+          <Link to="/" className="hover:text-foreground">Home</Link>
+          <ChevronRight className="w-4 h-4" />
+          <span className="text-foreground font-medium">Wishlist</span>
+        </div>
+
         {/* Page Header */}
         <div className="mb-5 md:mb-12 px-3">
           <h1 className="text-3xl md:text-5xl font-black mb-1 md:mb-2">My Collection</h1>

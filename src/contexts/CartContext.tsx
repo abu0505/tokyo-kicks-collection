@@ -80,24 +80,26 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
                     brand: item.shoes?.brand || item.brand
                 }));
 
-                // Fetch stock levels for these items
-                // We need to query shoe_sizes matching shoe_id and size
+                // Fetch stock levels for these items - BATched to avoid N+1
                 if (initialItems.length > 0) {
-                    const promises = initialItems.map(async (item) => {
-                        const { data: stockData } = await supabase
-                            .from('shoe_sizes')
-                            .select('quantity')
-                            .eq('shoe_id', item.shoeId)
-                            .eq('size', item.size)
-                            .single();
+                    const shoeIds = Array.from(new Set(initialItems.map(item => item.shoeId)));
 
-                        return {
-                            ...item,
-                            maxQuantity: stockData ? stockData.quantity : 0
-                        };
+                    const { data: stockData } = await supabase
+                        .from('shoe_sizes')
+                        .select('shoe_id, size, quantity')
+                        .in('shoe_id', shoeIds);
+
+                    // Create a lookup map for instant access: "shoeId-size" -> quantity
+                    const stockMap = new Map<string, number>();
+                    stockData?.forEach(stock => {
+                        stockMap.set(`${stock.shoe_id}-${stock.size}`, stock.quantity);
                     });
 
-                    const itemsWithStock = await Promise.all(promises);
+                    const itemsWithStock = initialItems.map(item => ({
+                        ...item,
+                        maxQuantity: stockMap.get(`${item.shoeId}-${item.size}`) || 0
+                    }));
+
                     setCartItems(itemsWithStock);
                 } else {
                     setCartItems(initialItems);

@@ -21,20 +21,22 @@ const RelatedProducts = ({ currentShoe, onWishlistClick, wishlistIds }: RelatedP
       // 1. Fetch sales from same brand
       const { data: sameBrandData, error: sameBrandError } = await supabase
         .from('shoes')
-        .select('*')
+        .select('id, name, brand, price, original_price, image_url, sizes, status, created_at')
         .eq('brand', currentShoe.brand)
         .neq('id', currentShoe.id)
         .limit(4);
 
       if (sameBrandError) throw sameBrandError;
 
-      let combinedShoes: DbShoe[] = sameBrandData || [];
+      type RelatedShoeRow = Pick<DbShoe, 'id' | 'name' | 'brand' | 'price' | 'original_price' | 'image_url' | 'sizes' | 'status' | 'created_at'>;
+
+      let combinedShoes: RelatedShoeRow[] = sameBrandData || [];
 
       // 2. If less than 4, fetch others to fill
       if (combinedShoes.length < 4) {
         const { data: otherData, error: otherError } = await supabase
           .from('shoes')
-          .select('*')
+          .select('id, name, brand, price, original_price, image_url, sizes, status, created_at')
           .neq('brand', currentShoe.brand)
           .neq('id', currentShoe.id)
           .order('status', { ascending: true }) // In stock first (text sort but 'in_stock' < 'sold_out')

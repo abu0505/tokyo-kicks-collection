@@ -2,7 +2,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useCoupon } from "@/hooks/useCoupon";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { Minus, Plus, X, ArrowRight, Lock } from "lucide-react";
+import { Minus, Plus, X, ArrowRight, Lock, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
@@ -78,6 +78,13 @@ const Cart = () => {
             <Header />
 
             <main className="flex-grow container mx-auto px-3 md:px-4 py-8 md:py-12">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                    <Link to="/" className="hover:text-foreground">Home</Link>
+                    <ChevronRight className="w-4 h-4" />
+                    <span className="text-foreground font-medium">Cart</span>
+                </div>
+
                 <div className="flex flex-col gap-8">
                     {/* Page Title */}
                     <div>

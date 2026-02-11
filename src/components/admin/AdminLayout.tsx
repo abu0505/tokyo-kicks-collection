@@ -61,7 +61,7 @@ const AdminLayout = ({ children, header }: AdminLayoutProps) => {
       {/* Logo */}
       <div className="px-6 py-6 border-b border-border">
         <Link to="/" className="flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-          <img src="/logo.png" alt="Tokyo Shoes" className="h-[46px] w-auto" />
+          <img src="/logo.webp" alt="Tokyo Shoes" className="h-[46px] w-auto" width="120" height="46" />
         </Link>
       </div>
 
@@ -135,7 +135,7 @@ const AdminLayout = ({ children, header }: AdminLayoutProps) => {
           </Sheet>
           <span className="font-bold text-lg">Admin Panel</span>
         </div>
-        <img src="/logo.png" alt="Tokyo Shoes" className="h-8 w-auto" />
+        <img src="/logo.webp" alt="Tokyo Shoes" className="h-8 w-auto" width="84" height="32" />
       </div>
 
       {/* Desktop Sidebar */}

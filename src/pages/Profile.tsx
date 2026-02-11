@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { Package, MapPin, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
+import { Package, MapPin, Loader2, Lock, Eye, EyeOff, ChevronRight } from 'lucide-react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -275,6 +275,13 @@ const Profile = () => {
             </Helmet>
             <Header />
             <div className="container mx-auto py-12 px-4 md:px-6">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                    <Link to="/" className="hover:text-foreground">Home</Link>
+                    <ChevronRight className="w-4 h-4" />
+                    <span className="text-foreground font-medium">My Profile</span>
+                </div>
+
                 <div className="max-w-4xl mx-auto">
                     {activeTab === 'account' && (
                         <div className="space-y-8">

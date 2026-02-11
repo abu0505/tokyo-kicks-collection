@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Lock, ChevronRight, CreditCard, HelpCircle } from "lucide-react";
+import { ArrowLeft, Lock, ChevronRight, CreditCard, HelpCircle, Truck } from "lucide-react";
 import { toast } from "sonner";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -33,7 +33,7 @@ interface LocationState {
     } | null;
 }
 
-type PaymentMethod = "card" | "paypal" | "upi";
+type PaymentMethod = "card" | "cod";
 
 const Payment = () => {
     const navigate = useNavigate();
@@ -357,7 +357,7 @@ const Payment = () => {
                                 <section className="mb-8">
                                     <h2 className="text-xl font-black tracking-tight mb-6">Payment Method</h2>
 
-                                    <div className="grid grid-cols-3 gap-3 mb-6">
+                                    <div className="grid grid-cols-2 gap-3 mb-6">
                                         {/* Card Option */}
                                         <button
                                             type="button"
@@ -381,50 +381,27 @@ const Payment = () => {
                                             <span className="text-sm font-bold">Card</span>
                                         </button>
 
-                                        {/* PayPal Option */}
+                                        {/* COD Option */}
                                         <button
                                             type="button"
-                                            onClick={() => setPaymentMethod("paypal")}
-                                            className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 ${paymentMethod === "paypal"
+                                            onClick={() => setPaymentMethod("cod")}
+                                            className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 ${paymentMethod === "cod"
                                                 ? "border-accent bg-accent/5"
                                                 : "border-border bg-background hover:border-accent/50"
                                                 }`}
                                         >
-                                            {paymentMethod === "paypal" && (
+                                            {paymentMethod === "cod" && (
                                                 <div className="absolute -top-2 -right-2 w-5 h-5 bg-accent rounded-full flex items-center justify-center">
                                                     <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 </div>
                                             )}
-                                            <div className={`w-10 h-7 rounded flex items-center justify-center mb-2 ${paymentMethod === "paypal" ? "bg-accent" : "bg-muted"
+                                            <div className={`w-10 h-7 rounded flex items-center justify-center mb-2 ${paymentMethod === "cod" ? "bg-accent" : "bg-muted"
                                                 }`}>
-                                                <span className={`text-xs font-black ${paymentMethod === "paypal" ? "text-white" : "text-muted-foreground"}`}>PP</span>
+                                                <Truck className={`w-5 h-5 ${paymentMethod === "cod" ? "text-white" : "text-muted-foreground"}`} />
                                             </div>
-                                            <span className="text-sm font-bold">PayPal</span>
-                                        </button>
-
-                                        {/* UPI Option */}
-                                        <button
-                                            type="button"
-                                            onClick={() => setPaymentMethod("upi")}
-                                            className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all duration-200 ${paymentMethod === "upi"
-                                                ? "border-accent bg-accent/5"
-                                                : "border-border bg-background hover:border-accent/50"
-                                                }`}
-                                        >
-                                            {paymentMethod === "upi" && (
-                                                <div className="absolute -top-2 -right-2 w-5 h-5 bg-accent rounded-full flex items-center justify-center">
-                                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                </div>
-                                            )}
-                                            <div className={`w-10 h-7 rounded flex items-center justify-center mb-2 ${paymentMethod === "upi" ? "bg-accent" : "bg-muted"
-                                                }`}>
-                                                <span className={`text-xs font-black ${paymentMethod === "upi" ? "text-white" : "text-muted-foreground"}`}>UPI</span>
-                                            </div>
-                                            <span className="text-sm font-bold">UPI</span>
+                                            <span className="text-sm font-bold">COD</span>
                                         </button>
                                     </div>
 
@@ -502,26 +479,20 @@ const Payment = () => {
                                         </div>
                                     )}
 
-                                    {/* PayPal Notice */}
-                                    {paymentMethod === "paypal" && (
+                                    {/* COD Notice */}
+                                    {paymentMethod === "cod" && (
                                         <div className="bg-background rounded-2xl p-6 border border-border text-center">
-                                            <p className="text-muted-foreground mb-2">
-                                                You will be redirected to PayPal to complete your payment.
+                                            <div className="flex justify-center mb-3">
+                                                <Truck className="w-8 h-8 text-accent" />
+                                            </div>
+                                            <p className="text-foreground font-bold mb-2">
+                                                Cash on Delivery
                                             </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                Click "Pay" to continue to PayPal.
+                                            <p className="text-muted-foreground text-sm mb-1">
+                                                Pay with cash when your order is delivered to your doorstep.
                                             </p>
-                                        </div>
-                                    )}
-
-                                    {/* UPI Notice */}
-                                    {paymentMethod === "upi" && (
-                                        <div className="bg-background rounded-2xl p-6 border border-border text-center">
-                                            <p className="text-muted-foreground mb-2">
-                                                Pay using UPI apps like Google Pay, PhonePe, or Paytm.
-                                            </p>
-                                            <p className="text-sm text-muted-foreground">
-                                                A QR code will be shown after clicking "Pay".
+                                            <p className="text-xs text-muted-foreground">
+                                                Please keep exact change ready for a smooth delivery experience.
                                             </p>
                                         </div>
                                     )}
@@ -565,7 +536,7 @@ const Payment = () => {
                                     disabled={isSubmitting}
                                     className="w-full py-7 text-base font-black rounded-full bg-accent hover:bg-black text-accent-foreground shadow-lg hover:shadow-xl transition-all duration-300"
                                 >
-                                    {isSubmitting ? <TextLoader text="Processing" className="text-accent-foreground" isWhite /> : `PAY ₹${total.toFixed(2)} →`}
+                                    {isSubmitting ? <TextLoader text="Processing" className="text-accent-foreground" isWhite /> : paymentMethod === "cod" ? `PLACE ORDER ₹${total.toFixed(2)} →` : `PAY ₹${total.toFixed(2)} →`}
                                 </Button>
 
                                 {/* Security Badge */}

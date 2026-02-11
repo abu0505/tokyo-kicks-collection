@@ -89,35 +89,33 @@ const Header = () => {
             </a>
 
             {/* Recently Viewed Dropdown */}
-            {recentlyViewed.length > 0 && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="relative">
-                    <RecentlyViewedDropdown
-                      recentlyViewedIds={recentlyViewed}
-                      onRemoveItem={removeFromRecentlyViewed}
-                      onClearAll={clearRecentlyViewed}
-                    />
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Recently Viewed</p>
-                </TooltipContent>
-              </Tooltip>
-            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="relative">
+                  <RecentlyViewedDropdown
+                    recentlyViewedIds={recentlyViewed}
+                    onRemoveItem={removeFromRecentlyViewed}
+                    onClearAll={clearRecentlyViewed}
+                  />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Recently Viewed</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
 
           {/* Center: Logo */}
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Tokyo Shoes" className="h-8 md:h-[46px] w-auto" />
+              <img src="/logo.webp" alt="Tokyo Shoes" className="h-8 md:h-[46px] w-auto" width="120" height="46" fetchPriority="high" />
             </Link>
           </div>
 
           {/* Mobile Logo (Visible only on mobile, since absolute one might overlap or behave oddly on small screens if not handled) */}
           <div className="md:hidden">
             <Link to="/" className="flex items-center gap-2">
-              <img src="/logo.png" alt="Tokyo Shoes" className="h-8 w-auto" />
+              <img src="/logo.webp" alt="Tokyo Shoes" className="h-8 w-auto" width="84" height="32" fetchPriority="high" />
             </Link>
           </div>
 
@@ -252,13 +250,11 @@ const Header = () => {
             </Link>
 
             {/* Recently Viewed - Mobile */}
-            {recentlyViewed.length > 0 && (
-              <RecentlyViewedDropdown
-                recentlyViewedIds={recentlyViewed}
-                onRemoveItem={removeFromRecentlyViewed}
-                onClearAll={clearRecentlyViewed}
-              />
-            )}
+            <RecentlyViewedDropdown
+              recentlyViewedIds={recentlyViewed}
+              onRemoveItem={removeFromRecentlyViewed}
+              onClearAll={clearRecentlyViewed}
+            />
 
             {/* Mobile Menu */}
             <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>

@@ -2,53 +2,59 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
-const MAX_ITEMS = 6;
+const MAX_ITEMS = 10;
+const STORAGE_KEY = 'recently_viewed_storage';
+
+// Helper to read from localStorage synchronously
+const getStoredIds = (): string[] => {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+};
+
+// Helper to save to localStorage
+const saveToStorage = (ids: string[]) => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(ids));
+};
 
 export const useRecentlyViewed = () => {
   const { user } = useAuth();
-  const [recentlyViewed, setRecentlyViewed] = useState<string[]>([]);
 
-  // Load items
+  // Initialize from localStorage synchronously to prevent flicker on navigation
+  const [recentlyViewed, setRecentlyViewed] = useState<string[]>(getStoredIds);
+
+  // Sync with Supabase for logged-in users (DB is the source of truth)
   useEffect(() => {
-    const loadItems = async () => {
-      if (user) {
-        // Load from Supabase for logged-in users
-        try {
-          const { data, error } = await supabase
-            .from('recently_viewed')
-            .select('shoe_id')
-            .eq('user_id', user.id)
-            .order('viewed_at', { ascending: false })
-            .limit(MAX_ITEMS);
+    if (!user) return;
 
-          if (error) {
-            console.error('Error loading recently viewed from DB:', error);
-            return;
-          }
+    const syncWithDb = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('recently_viewed')
+          .select('shoe_id')
+          .eq('user_id', user.id)
+          .order('viewed_at', { ascending: false })
+          .limit(MAX_ITEMS);
 
-          if (data) {
-            setRecentlyViewed(data.map(item => item.shoe_id));
-          }
-        } catch (error) {
-          console.error('Error in loadItems:', error);
+        if (error) {
+          console.error('Error loading recently viewed from DB:', error);
+          return;
         }
-      } else {
-        // Load from LocalStorage for guests
-        const stored = localStorage.getItem('recently_viewed_storage');
-        if (stored) {
-          try {
-            setRecentlyViewed(JSON.parse(stored));
-          } catch (e) {
-            console.error('Error parsing recently viewed from local storage', e);
-            setRecentlyViewed([]);
-          }
-        } else {
-          setRecentlyViewed([]);
+
+        if (data) {
+          const ids = data.map(item => item.shoe_id);
+          setRecentlyViewed(ids);
+          saveToStorage(ids); // Cache DB result in localStorage
         }
+      } catch (error) {
+        console.error('Error in syncWithDb:', error);
       }
     };
 
-    loadItems();
+    syncWithDb();
   }, [user]);
 
   const addToRecentlyViewed = useCallback(async (shoeId: string) => {
@@ -56,10 +62,7 @@ export const useRecentlyViewed = () => {
     setRecentlyViewed((prev) => {
       const filtered = prev.filter((id) => id !== shoeId);
       const newIds = [shoeId, ...filtered].slice(0, MAX_ITEMS);
-
-      if (!user) {
-        localStorage.setItem('recently_viewed_storage', JSON.stringify(newIds));
-      }
+      saveToStorage(newIds); // Always cache locally
       return newIds;
     });
 
@@ -89,9 +92,7 @@ export const useRecentlyViewed = () => {
     // Optimistic update
     setRecentlyViewed((prev) => {
       const newIds = prev.filter((id) => id !== shoeId);
-      if (!user) {
-        localStorage.setItem('recently_viewed_storage', JSON.stringify(newIds));
-      }
+      saveToStorage(newIds); // Always cache locally
       return newIds;
     });
 
@@ -116,11 +117,9 @@ export const useRecentlyViewed = () => {
   const clearRecentlyViewed = useCallback(async () => {
     // Optimistic update
     setRecentlyViewed([]);
+    localStorage.removeItem(STORAGE_KEY);
 
-    if (!user) {
-      localStorage.removeItem('recently_viewed_storage');
-      return;
-    }
+    if (!user) return;
 
     // Clear from Supabase
     try {

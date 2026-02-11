@@ -18,6 +18,8 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
           loading="eager"
           decoding="async"
           sizes="(max-width: 768px) 100vw, 50vw"
+          width="800"
+          height="600"
           className="w-full h-full object-cover opacity-20 md:opacity-30"
         />
       </div>

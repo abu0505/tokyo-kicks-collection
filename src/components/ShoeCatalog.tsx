@@ -159,7 +159,7 @@ const ShoeCatalog = ({ shoes, onWishlistClick, wishlistIds }: ShoeCatalogProps) 
               <div
                 key={shoe.id}
                 className="animate-fade-in h-full"
-                style={{ animationDelay: `${(index % 10) * 0.05}s` }}
+                style={{ animationDelay: `${(index % 4) * 0.03}s` }}
               >
                 {isMobile ? (
                   <ShoeCardMobile

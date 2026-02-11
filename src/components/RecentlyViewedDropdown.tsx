@@ -48,14 +48,15 @@ const RecentlyViewedDropdown = ({
         createdAt: new Date(shoe.created_at)
       })) as Shoe[];
 
-      return recentlyViewedIds
-        .slice(0, 4)
-        .map(id => shoes.find(s => s.id === id))
-        .filter((s): s is Shoe => s !== undefined);
+      return shoes;
     },
     enabled: recentlyViewedIds.length > 0,
-    placeholderData: keepPreviousData,
+    placeholderData: keepPreviousData
   });
+
+  const displayedShoes = recentlyViewedIds
+    .map(id => recentShoes.find(s => s.id === id))
+    .filter((s): s is Shoe => s !== undefined);
 
 
   const handleRemoveItem = (e: React.MouseEvent, id: string) => {
@@ -82,7 +83,7 @@ const RecentlyViewedDropdown = ({
           <History className="w-5 h-5" />
           <span className="text-xs font-bold tracking-wide hidden sm:inline">RECENT</span>
           <span className="absolute top-0 right-0 md:-top-1 md:-right-1 bg-accent text-background text-[10px] md:text-xs font-bold w-4 h-4 md:w-5 md:h-5 rounded-full flex items-center justify-center">
-            {recentShoes.length}
+            {recentlyViewedIds.length}
           </span>
           <span className="sr-only">Recently viewed</span>
         </button>
@@ -99,7 +100,7 @@ const RecentlyViewedDropdown = ({
       >
         <div className="p-3 border-b-2 border-foreground flex items-center justify-between">
           <span className="text-sm font-bold tracking-wide">RECENTLY VIEWED</span>
-          {onClearAll && recentShoes.length > 0 && (
+          {onClearAll && recentlyViewedIds.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
@@ -112,37 +113,43 @@ const RecentlyViewedDropdown = ({
           )}
         </div>
         <div className="max-h-80 overflow-y-auto">
-          {recentShoes.map((shoe) => (
-            <div key={shoe!.id} className="relative group/item">
-              <Link
-                to={`/product/${shoe!.id}`}
-                className="flex items-center gap-2.5 p-2.5 hover:bg-muted/50 transition-colors border-b border-muted last:border-b-0 pr-10"
-              >
-                <img
-                  src={shoe!.image}
-                  alt={shoe!.name}
-                  className="w-16 h-16 object-cover rounded"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold truncate">{shoe!.name}</p>
-                  <p className="text-xs text-muted-foreground">{shoe!.brand}</p>
-                  <p className="text-sm font-bold text-accent mt-1">
-                    {formatPrice(shoe!.price)}
-                  </p>
-                </div>
-              </Link>
-              {onRemoveItem && (
-                <button
-                  onClick={(e) => handleRemoveItem(e, shoe!.id)}
-                  className="absolute top-1/2 -translate-y-1/2 right-3 w-6 h-6 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground 
-                             flex items-center justify-center transition-colors"
-                  title="Remove from recently viewed"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+          {recentlyViewedIds.length === 0 ? (
+            <div className="p-8 text-center text-muted-foreground">
+              <p className="text-sm">No recently viewed items</p>
             </div>
-          ))}
+          ) : (
+            displayedShoes.map((shoe) => (
+              <div key={shoe!.id} className="relative group/item">
+                <Link
+                  to={`/product/${shoe!.id}`}
+                  className="flex items-center gap-2.5 p-2.5 hover:bg-muted/50 transition-colors border-b border-muted last:border-b-0 pr-10"
+                >
+                  <img
+                    src={shoe!.image}
+                    alt={shoe!.name}
+                    className="w-16 h-16 object-cover rounded"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold truncate">{shoe!.name}</p>
+                    <p className="text-xs text-muted-foreground">{shoe!.brand}</p>
+                    <p className="text-sm font-bold text-accent mt-1">
+                      {formatPrice(shoe!.price)}
+                    </p>
+                  </div>
+                </Link>
+                {onRemoveItem && (
+                  <button
+                    onClick={(e) => handleRemoveItem(e, shoe!.id)}
+                    className="absolute top-1/2 -translate-y-1/2 right-3 w-6 h-6 rounded-full bg-muted/80 hover:bg-destructive hover:text-destructive-foreground 
+                               flex items-center justify-center transition-colors"
+                    title="Remove from recently viewed"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            ))
+          )}
         </div>
         <button
           onClick={scrollToCatalog}

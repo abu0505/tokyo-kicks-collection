@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Mail, Phone, MapPin, Clock, Send, MessageSquare, ChevronDown } from 'lucide-react';
+import { Mail, Phone, MapPin, Clock, Send, MessageSquare, ChevronDown, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import TextLoader from '@/components/TextLoader';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -141,6 +142,13 @@ const Contact = () => {
             <Header />
 
             <main className="container py-8 md:py-12 px-2">
+                {/* Breadcrumb */}
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+                    <Link to="/" className="hover:text-foreground">Home</Link>
+                    <ChevronRight className="w-4 h-4" />
+                    <span className="text-foreground font-medium">Contact Us</span>
+                </div>
+
                 {/* Page Header */}
                 <motion.div
                     className="mb-12 text-center"

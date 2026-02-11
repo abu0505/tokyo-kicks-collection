@@ -1,4 +1,7 @@
 
+// Cache mobile detection at module level to avoid repeated DOM access
+const mobileQuery = typeof window !== 'undefined' ? window.matchMedia('(max-width: 639px)') : null;
+
 /**
  * Get the optimized image URL with mobile-specific constraints
  * For mobile screens (< 640px), caps at 600px width with quality 60
@@ -10,8 +13,8 @@ export const getOptimizedImageUrl = (url: string, width: number, quality: number
         return url;
     }
 
-    // Mobile optimization: cap width at 600px with reduced quality for faster LCP
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+    // Mobile optimization: use cached matchMedia result
+    const isMobile = mobileQuery?.matches ?? false;
     const optimizedWidth = isMobile ? Math.min(width, 600) : width;
     const optimizedQuality = isMobile ? Math.min(quality, 60) : quality;
 

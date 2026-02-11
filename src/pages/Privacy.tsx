@@ -1,5 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 
@@ -14,6 +16,13 @@ const Privacy = () => {
                     transition={{ duration: 0.5 }}
                     className="max-w-4xl mx-auto prose prose-slate"
                 >
+                    {/* Breadcrumb */}
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6 not-prose">
+                        <Link to="/" className="hover:text-foreground">Home</Link>
+                        <ChevronRight className="w-4 h-4" />
+                        <span className="text-foreground font-medium">Privacy Policy</span>
+                    </div>
+
                     <h1 className="text-3xl md:text-4xl font-bold mb-8">Privacy Policy</h1>
                     <p className="text-gray-500 mb-8">Last Updated: {new Date().toLocaleDateString()}</p>
 

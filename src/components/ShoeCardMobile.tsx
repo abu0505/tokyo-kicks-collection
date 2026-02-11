@@ -5,6 +5,7 @@ import { Shoe, isNewArrival } from '@/types/shoe';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { formatPrice, calculateDiscountPercentage } from '@/lib/format';
+import { getOptimizedImageUrl } from '@/lib/imageOptimizer';
 import StarRating from '@/components/StarRating';
 import { motion, useMotionValue, useTransform, PanInfo, animate } from 'framer-motion';
 import { toast } from 'sonner';
@@ -226,12 +227,14 @@ const ShoeCardMobile = React.memo(({
         {/* Image Container - Left Side */}
         <div className="relative w-[140px] h-[140px] flex-shrink-0 overflow-hidden bg-secondary">
           <img
-            src={shoe.image}
+            src={getOptimizedImageUrl(shoe.image, 300)}
             alt={shoe.name}
             className="w-full h-full object-cover"
             draggable={false}
             loading="lazy"
             decoding="async"
+            width="300"
+            height="300"
           />
 
 
