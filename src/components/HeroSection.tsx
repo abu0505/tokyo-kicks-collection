@@ -63,13 +63,7 @@ const HeroSection = ({ onBrowseClick }: HeroSectionProps) => {
               BROWSE COLLECTION
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-2 border-accent-foreground bg-foreground text-accent-foreground hover:bg-accent-foreground hover:text-foreground px-6 md:px-8 py-5 md:py-6 text-base md:text-lg font-bold w-full sm:w-auto"
-            >
-              NEW ARRIVALS
-            </Button>
+
           </div>
 
           {/* Stats */}

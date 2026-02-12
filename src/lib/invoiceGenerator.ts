@@ -289,7 +289,8 @@ export const generateInvoicePDF = async (order: OrderData): Promise<InvoiceResul
     doc.setFontSize(8);
     doc.setFont("helvetica", "normal");
     doc.setTextColor(120, 120, 120);
-    doc.text(`Payment: ${order.paymentMethod || "N/A"}`, summaryLabelX, currentY);
+    const paymentLabel = order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod === 'card' ? 'Credit/Debit Card' : (order.paymentMethod || 'N/A');
+    doc.text(`Payment: ${paymentLabel}`, summaryLabelX, currentY);
 
     // ============================================================
     // 5. FOOTER

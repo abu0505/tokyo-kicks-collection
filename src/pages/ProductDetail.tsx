@@ -283,7 +283,7 @@ const ProductDetail = () => {
         transition={{ duration: 0.4, delay: 0.1 }}
       >
         {/* Breadcrumb */}
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2 md:mb-6">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2 md:mb-6 p-2 md:p-0">
           <Link to="/" className="hover:text-foreground">Home</Link>
           <ChevronRight className="w-4 h-4" />
           <span className="text-foreground font-medium truncate max-w-[200px] md:max-w-none">{shoe.name}</span>
