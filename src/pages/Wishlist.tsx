@@ -50,6 +50,7 @@ const Wishlist = () => {
         price: shoe.price,
         image: shoe.image_url || '',
         additionalImages: shoe.additional_images || [],
+        thumbnailUrl: shoe.thumbnail_url || undefined,
         sizes: shoe.sizes,
         status: shoe.status,
         originalPrice: shoe.original_price ?? undefined,
@@ -92,6 +93,7 @@ const Wishlist = () => {
       sizes: shoe.sizes,
       status: shoe.status,
       original_price: shoe.originalPrice ?? null,
+      thumbnail_url: shoe.thumbnailUrl || null,
       created_at: shoe.createdAt.toISOString(),
       updated_at: shoe.updatedAt ? shoe.updatedAt.toISOString() : null
     };
@@ -106,6 +108,7 @@ const Wishlist = () => {
       price: dbShoe.price,
       image: dbShoe.image_url || '',
       additionalImages: dbShoe.additional_images || [],
+      thumbnailUrl: dbShoe.thumbnail_url || undefined,
       sizes: dbShoe.sizes,
       status: dbShoe.status,
       originalPrice: dbShoe.original_price ?? undefined,

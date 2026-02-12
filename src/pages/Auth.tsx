@@ -227,7 +227,7 @@ const Auth = () => {
         </div>
 
         {/* Auth Card */}
-        <div className="bg-card border-2 border-foreground p-8">
+        <div className="bg-card border-2 border-foreground p-4 md:p-8">
           {authError && (
             <Alert variant="destructive" className="mb-6">
               <AlertCircle className="h-4 w-4" />

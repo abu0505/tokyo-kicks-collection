@@ -312,7 +312,7 @@ const Profile = () => {
                                         </div>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="p-8">
+                                <CardContent className="p-4 md:p-8">
                                     <Form {...form}>
                                         <form onSubmit={form.handleSubmit((data) => updateProfileMutation.mutate(data))} className="space-y-8">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -386,11 +386,11 @@ const Profile = () => {
                                                 )}
                                             />
 
-                                            <div className="flex justify-end pt-4">
+                                            <div className="flex justify-end pt-4 w-full">
                                                 <Button
                                                     type="submit"
                                                     disabled={updateProfileMutation.isPending}
-                                                    className="bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest h-14 px-10 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                                                    className="w-full md:w-auto bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest h-14 px-10 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                                                 >
                                                     {updateProfileMutation.isPending && <Loader2 className="mr-3 h-5 w-5 animate-spin" />}
                                                     Save Changes
@@ -412,7 +412,7 @@ const Profile = () => {
                                         </div>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="p-8">
+                                <CardContent className="p-4 md:p-8">
                                     <Form {...addressForm}>
                                         <form onSubmit={addressForm.handleSubmit((data) => updateAddressMutation.mutate(data))} className="space-y-8">
                                             <div>
@@ -472,11 +472,11 @@ const Profile = () => {
                                                 )}
                                             />
 
-                                            <div className="flex justify-end pt-4">
+                                            <div className="flex justify-end pt-4 w-full">
                                                 <Button
                                                     type="submit"
                                                     disabled={updateAddressMutation.isPending}
-                                                    className="bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest h-14 px-10 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                                                    className="w-full md:w-auto bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest h-14 px-10 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                                                 >
                                                     {updateAddressMutation.isPending && <Loader2 className="mr-3 h-5 w-5 animate-spin" />}
                                                     Update Address
@@ -497,7 +497,7 @@ const Profile = () => {
                                         </div>
                                     </div>
                                 </CardHeader>
-                                <CardContent className="p-8">
+                                <CardContent className="p-4 md:p-8">
                                     <Form {...passwordForm}>
                                         <form onSubmit={passwordForm.handleSubmit((data) => updatePasswordMutation.mutate(data))} className="space-y-8">
                                             <FormField
@@ -594,11 +594,11 @@ const Profile = () => {
                                                 />
                                             </div>
 
-                                            <div className="flex justify-end pt-4">
+                                            <div className="flex justify-end pt-4 w-full">
                                                 <Button
                                                     type="submit"
                                                     disabled={updatePasswordMutation.isPending}
-                                                    className="bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest h-14 px-10 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+                                                    className="w-full md:w-auto bg-black hover:bg-gray-800 text-white font-black uppercase tracking-widest h-14 px-10 rounded-none border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,255,255,0.3)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
                                                 >
                                                     {updatePasswordMutation.isPending && <Loader2 className="mr-3 h-5 w-5 animate-spin" />}
                                                     Update Password

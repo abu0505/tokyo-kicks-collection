@@ -34,32 +34,7 @@ function isCrawler(userAgent: string | null): boolean {
     return CRAWLER_USER_AGENTS.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()))
 }
 
-/**
- * Converts a Supabase storage URL to use the image transformation endpoint
- * This converts WebP images to JPEG for better iOS/WhatsApp compatibility
- */
-function getTransformedImageUrl(originalUrl: string): string {
-    if (!originalUrl || !originalUrl.includes('supabase.co/storage/v1/object/public/')) {
-        return originalUrl
-    }
 
-    // Convert from:
-    // https://xxx.supabase.co/storage/v1/object/public/bucket/path/image.webp
-    // To:
-    // https://xxx.supabase.co/storage/v1/render/image/public/bucket/path/image.webp?width=1200&height=630&format=jpeg
-
-    const transformedUrl = originalUrl.replace(
-        '/storage/v1/object/public/',
-        '/storage/v1/render/image/public/'
-    )
-
-    // Add transformation parameters for WhatsApp/iOS compatibility:
-    // - format=jpeg: Convert WebP to JPEG (better iOS support)
-    // - width=1200, height=630: Standard OG image dimensions
-    // - resize=contain: Preserve aspect ratio
-    // - quality=85: Good quality while keeping file size reasonable
-    return `${transformedUrl}?width=1200&height=630&resize=contain&format=jpeg&quality=85`
-}
 
 serve(async (req: Request) => {
     // Handle CORS
@@ -111,8 +86,8 @@ serve(async (req: Request) => {
         const title = product.name
         const description = `Check out these ${product.name} at Tokyo Shoes!`
 
-        // Use transformed image URL for proper JPEG conversion (iOS/WhatsApp compatibility)
-        const imageUrl = getTransformedImageUrl(product.image_url)
+        // Use original image URL directly (Image Transformations require Pro plan)
+        const imageUrl = product.image_url || ''
 
         // Escape quotes in title for meta tags
         const escapedTitle = title.replace(/"/g, '&quot;')
@@ -125,6 +100,7 @@ serve(async (req: Request) => {
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="refresh" content="0;url=${redirectUrl}">
+    <meta name="apple-mobile-web-app-capable" content="yes">
     <title>${escapedTitle} | Tokyo Shoes</title>
     
     <!-- Essential Open Graph Meta Tags -->
@@ -134,7 +110,7 @@ serve(async (req: Request) => {
     <meta property="og:image:secure_url" content="${imageUrl}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:type" content="image/jpeg">
+    <meta property="og:image:type" content="image/webp">
     <meta property="og:image:alt" content="${escapedTitle}">
     <meta property="og:url" content="${redirectUrl}">
     <meta property="og:type" content="product">
@@ -157,9 +133,7 @@ serve(async (req: Request) => {
             status: 200,
             headers: {
                 'Content-Type': 'text/html; charset=utf-8',
-                'Cache-Control': 'no-cache, no-store, must-revalidate',
-                'Pragma': 'no-cache',
-                'Expires': '0',
+                'Cache-Control': 'public, max-age=86400',
             },
         })
 

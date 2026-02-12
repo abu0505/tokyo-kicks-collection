@@ -16,7 +16,11 @@ import {
     AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
-const CleanStorageButton = () => {
+interface CleanStorageButtonProps {
+    className?: string;
+}
+
+const CleanStorageButton = ({ className }: CleanStorageButtonProps) => {
     const [isCleaning, setIsCleaning] = useState(false);
     const [stats, setStats] = useState<{ scanned: number; deleted: number; spaceSaved: string } | null>(null);
 
@@ -127,7 +131,7 @@ const CleanStorageButton = () => {
             <AlertDialogTrigger asChild>
                 <Button
                     variant="outline"
-                    className="gap-2 text-black border-black border font-bold h-10 px-4 transition-all hover:bg-black hover:text-white"
+                    className={`gap-2 text-black border-black border font-bold h-10 px-4 transition-all hover:bg-black hover:text-white ${className || ''}`}
                 >
                     <Trash2 className="h-4 w-4" />
                     Clean Storage

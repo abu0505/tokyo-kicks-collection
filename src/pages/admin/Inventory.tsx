@@ -179,16 +179,16 @@ const Inventory = () => {
   return (
     <AdminLayout
       header={
-        <header className="h-20 shrink-0 bg-white border-b border-border px-2 md:px-8 flex items-center justify-between">
+        <header className="h-auto md:h-20 shrink-0 bg-white border-b border-border px-4 py-4 md:py-0 md:px-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 md:gap-0">
           <div className="flex flex-col">
-            <h2 className="text-lg md:text-2xl font-bold text-black tracking-tight actions uppercase">Inventory Management</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-black tracking-tight actions uppercase">Inventory Management</h2>
             <p className="text-xs md:text-sm text-muted-foreground">View and manage your shoe inventory</p>
           </div>
-          <div className="flex items-center gap-3">
-            <CleanStorageButton />
+          <div className="grid grid-cols-2 md:flex items-center gap-3 w-full md:w-auto">
+            <CleanStorageButton className="w-full md:w-auto" />
             <button
               onClick={() => navigate('/admin/inventory/add')}
-              className="h-10 px-2 md:px-4 flex items-center justify-center gap-1 md:gap-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-bold transition-all shadow-md shadow-accent/30"
+              className="h-10 w-full md:w-auto px-4 flex items-center justify-center gap-2 rounded-lg bg-accent hover:bg-accent/90 text-white text-sm font-bold transition-all shadow-md shadow-accent/30"
             >
               <Plus className="h-5 w-5" />
               Add Shoe
